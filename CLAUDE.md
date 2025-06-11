@@ -56,14 +56,14 @@ cargo doc --open         # Generate documentation
 - **Language**: Rust (Edition 2021)
 - **Framework**: Axum 0.7 (REST API framework)
 - **Database**: MariaDB/MySQL with SQLx
-- **Auth**: Standard Email/Password (Argon2) and Discord OAuth
+- **Auth**: Standard Email/Password (Argon2)
 - **Secrets**: Stored in the database (only DB credentials live in `.env`)
 - **Runtime**: Tokio (async runtime)
 
 ### Core Modules
 
 - **User Management**
-  - Login via email/password or Discord
+  - Login via email/password
   - Avatars, linked games, user profiles
   - Messaging between users
 

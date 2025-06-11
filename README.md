@@ -4,7 +4,7 @@ Bridge is a Rust-based RESTful API server designed to unify user interactions ac
 
 ## Features
 
-- **User Management**: Email/password and Discord OAuth authentication
+- **User Management**: Email/password
 - **Inventory System**: Items with rarity, modifiers, and credit values
 - **Trading System**: Direct player-to-player item exchanges
 - **Social Graph**: Friends, clans, and clan federations

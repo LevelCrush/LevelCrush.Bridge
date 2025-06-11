@@ -40,7 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Environment variable protection for database credentials
 
 ### To Do
-- Discord OAuth integration
 - Full implementation of inventory endpoints
 - Trading system logic
 - Clan management features
