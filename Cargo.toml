@@ -10,6 +10,10 @@ license = "MIT"
 name = "test_db"
 path = "src/bin/test_db.rs"
 
+[[bin]]
+name = "test_logging"
+path = "src/bin/test_logging.rs"
+
 [dependencies]
 # Web framework
 axum = "0.7"
@@ -37,7 +41,8 @@ reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-feature
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.6", features = ["v4", "serde"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "time", "local-time"] }
+tracing-appender = "0.2"
 dotenvy = "0.15"
 thiserror = "1.0"
 anyhow = "1.0"

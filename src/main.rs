@@ -1,9 +1,4 @@
-mod api;
-mod auth;
-mod db;
-mod models;
-mod services;
-mod utils;
+use bridge::{api, utils, AppState};
 
 use axum::{
     http::{header, Method},
@@ -16,26 +11,14 @@ use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-pub struct AppState {
-    pub db: sqlx::MySqlPool,
-    pub jwt_secret: String,
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables
     dotenvy::dotenv().ok();
 
-    // Initialize tracing
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "bridge=debug,tower_http=debug,sqlx=warn".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+    // Initialize logging with file rotation
+    let _guard = utils::init_logging()?;
 
     // Get configuration from environment
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");

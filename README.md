@@ -111,6 +111,19 @@ PORT=3113               # Server port (default: 3000)
 RUST_LOG=debug          # Logging level
 ```
 
+## Logging
+
+The application logs to both console and rotating daily log files:
+- Console: Pretty-printed logs for development
+- File: Detailed logs saved to `./logs/bridge.log` with daily rotation
+- Log files include: timestamps, thread info, file locations, and full context
+
+To adjust log levels, set the `RUST_LOG` environment variable:
+```bash
+RUST_LOG=info cargo run --bin bridge  # Info level and above
+RUST_LOG=bridge=debug,tower_http=info,sqlx=warn cargo run --bin bridge  # Custom per-module
+```
+
 ## Database Schema
 
 The project uses 19 tables to manage all features:

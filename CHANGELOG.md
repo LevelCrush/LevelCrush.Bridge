@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Middleware for JWT authentication on protected routes
 - Comprehensive error handling with consistent JSON responses
 - Structured logging with tracing
+- Daily rotating file logs in addition to console output
 - Environment-based configuration
 - Development utilities (test_db binary for connection testing)
 - API request examples in HTTP format
