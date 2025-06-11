@@ -1,0 +1,66 @@
+### Bridge API Example Requests
+### Base URL: http://localhost:3113/api/v1
+
+### User Registration
+POST http://localhost:3113/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "username": "testuser",
+  "password": "securepassword123",
+  "avatar_url": "https://example.com/avatar.png"
+}
+
+### User Login
+POST http://localhost:3113/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "securepassword123"
+}
+
+### Get Current User (requires authentication)
+GET http://localhost:3113/api/v1/users/me
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get User Inventory
+GET http://localhost:3113/api/v1/inventory
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get Available Items
+GET http://localhost:3113/api/v1/inventory/items
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get User's Trades
+GET http://localhost:3113/api/v1/trading
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get Active Trades
+GET http://localhost:3113/api/v1/trading/active
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get Clans
+GET http://localhost:3113/api/v1/clans
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get User's Clan
+GET http://localhost:3113/api/v1/clans/my
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get Marketplace Listings
+GET http://localhost:3113/api/v1/marketplace
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get User's Listings
+GET http://localhost:3113/api/v1/marketplace/my
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get Messages
+GET http://localhost:3113/api/v1/messages
+Authorization: Bearer YOUR_JWT_TOKEN
+
+### Get Unread Message Count
+GET http://localhost:3113/api/v1/messages/unread
+Authorization: Bearer YOUR_JWT_TOKEN
