@@ -1,152 +1,259 @@
-# CLAUDE.md
+# Dynasty Trader (formerly Bridge) - Project Context
 
-This file provides guidance to Claude Code (claude.ai/code) for working with the **Bridge** project.
+## Project Evolution
 
-## Project Overview
+This project is evolving from "Bridge" (a multi-game inventory system) into **Dynasty Trader** - a revolutionary roguelike economy game where death drives markets and players build multi-generational trading empires.
 
-**Bridge** is a Rust-based RESTful API server designed to unify user interactions across multiple games. It acts as a centralized service for user inventory, trading, social networks, and reward systems.
+## Current Status
+
+**Phase**: Migration from Bridge → Dynasty Trader
+**Architecture**: Leveraging existing Rust/Axum backend, adding roguelike economy features
+**Next Steps**: See [Migration Plan](docs/game-design/synthesis/bridge-migration-plan.md)
 
 ## Quick Start
 
 ```bash
-# Setup environment
+# Current Bridge setup (still works)
 cp .env.example .env
-# Edit .env with your database credentials
-
-# Run database migrations
 cargo run --bin migrate
-
-# Run the application
 cargo run --bin bridge
 
-# Format & lint before commit
-cargo fmt && cargo clippy
+# Coming soon: Dynasty Trader mode
+cargo run --bin dynasty-trader
 ```
 
-## Server Configuration
+## Architecture Overview
 
-- **Default Port**: 3113 (configurable in .env)
-- **API Base URL**: http://localhost:3113/api/v1
-- **Database**: MariaDB/MySQL on localhost:3306
+### Current Stack (Bridge)
+- **Backend**: Rust + Axum 0.7
+- **Database**: MariaDB with SQLx
+- **Auth**: Email/password with JWT
+- **Features**: Inventory, trading, clans, marketplace
 
-## Development Commands
+### Target Stack (Dynasty Trader)
+- **Backend**: Rust + Axum (unchanged)
+- **Database**: PostgreSQL + TimescaleDB (for time-series market data)
+- **Frontend**: React PWA (Progressive Web App)
+- **Discord**: Bot for notifications and trading
+- **Real-time**: WebSockets for live market data
+- **Auth**: Discord OAuth2 + existing system
+
+## Core Game Concepts
+
+### Dynasty System
+- Each player controls a dynasty across generations
+- Characters age and eventually die (permadeath)
+- Inheritance passes wealth/reputation to heirs
+- Death events affect market prices
+
+### Market Mechanics
+- Regional markets (no global auction house)
+- Real-time price fluctuations
+- Supply/demand driven by player actions
+- Ghost markets for post-death influence
+
+### Roguelike Elements
+- Procedural market events
+- Permadeath with inheritance
+- Risk/reward on trade routes
+- Character aging affects abilities
+
+## Development Roadmap
+
+### Phase 1: Database Migration (Week 1)
+- [ ] Migrate from MariaDB to PostgreSQL
+- [ ] Add TimescaleDB for market data
+- [ ] Create character/dynasty tables
+- [ ] Implement aging system
+
+### Phase 2: Core Mechanics (Week 2-3)
+- [ ] Character lifecycle (birth → death)
+- [ ] Inheritance system
+- [ ] Death market impacts
+- [ ] Basic ghost mechanics
+
+### Phase 3: Market Systems (Week 4-5)
+- [ ] Regional market separation
+- [ ] Price history tracking
+- [ ] WebSocket real-time updates
+- [ ] Market event system
+
+### Phase 4: Frontend (Week 6-8)
+- [ ] React PWA setup
+- [ ] Trading interface
+- [ ] Dynasty management
+- [ ] Market visualizations
+
+### Phase 5: Discord Bot (Week 9)
+- [ ] OAuth2 integration
+- [ ] Market alerts
+- [ ] Death announcements
+- [ ] Trading commands
+
+## Key Files & Directories
+
+```
+bridge/                          # Project root
+├── src/                        # Rust backend
+│   ├── models/                 # Domain models
+│   │   ├── character.rs       # NEW: Character lifecycle
+│   │   ├── dynasty.rs         # NEW: Dynasty system
+│   │   └── market.rs          # NEW: Market mechanics
+│   ├── services/              
+│   │   ├── death_service.rs   # NEW: Death handling
+│   │   └── market_service.rs  # NEW: Regional markets
+│   └── api/
+│       └── websocket.rs       # NEW: Real-time updates
+├── frontend/                   # NEW: React PWA
+├── discord-bot/               # NEW: Discord integration
+└── docs/
+    └── game-design/           # Comprehensive game design
+        ├── economy/           # Economy game research
+        ├── roguelike/         # Roguelike research
+        └── synthesis/         # Hybrid design
+```
+
+## API Evolution
+
+### Existing Endpoints (Preserved)
+All current Bridge endpoints remain functional during migration:
+- `/api/v1/auth/*` - Authentication
+- `/api/v1/users/*` - User management
+- `/api/v1/inventory/*` - Inventory (adapting for characters)
+- `/api/v1/trading/*` - Trading (enhancing for dynasties)
+- `/api/v1/clans/*` - Clans (becoming dynasty alliances)
+
+### New Endpoints (Dynasty Trader)
+- `/api/v2/characters/*` - Character management
+- `/api/v2/dynasties/*` - Dynasty operations
+- `/api/v2/markets/*` - Regional market data
+- `/api/v2/ghost/*` - Ghost market actions
+- `/ws/market` - WebSocket market stream
+
+## Database Schema Changes
+
+### New Tables
+```sql
+-- Character system
+CREATE TABLE characters (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    dynasty_id UUID REFERENCES dynasties(id),
+    name VARCHAR(100),
+    age INTEGER,
+    health INTEGER,
+    location_id UUID,
+    died_at TIMESTAMPTZ,
+    death_cause VARCHAR(255)
+);
+
+-- Dynasty system
+CREATE TABLE dynasties (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users(id),
+    name VARCHAR(100),
+    generation INTEGER,
+    reputation INTEGER,
+    total_wealth DECIMAL(20,2)
+);
+
+-- Market time-series data
+CREATE TABLE market_prices (
+    time TIMESTAMPTZ,
+    region_id UUID,
+    item_id UUID,
+    price DECIMAL(10,2),
+    volume INTEGER
+);
+```
+
+### Modified Tables
+- `user_inventory` → Add `character_id` column
+- `clans` → Adapt for dynasty alliances
+- `trades` → Add dynasty reputation effects
+
+## Testing Strategy
+
+### Unit Tests
+- Character aging mechanics
+- Death and inheritance
+- Market price calculations
+- Dynasty progression
+
+### Integration Tests
+- Full character lifecycle
+- Market event propagation
+- WebSocket connections
+- Discord bot commands
+
+### Load Tests
+- 10,000 concurrent traders
+- Real-time market updates
+- Death event processing
+- Database performance
+
+## Security Considerations
+
+### New Attack Vectors
+- Market manipulation via coordinated deaths
+- Dynasty reputation exploits
+- Ghost market abuse
+- Time-based attacks on aging
+
+### Mitigations
+- Rate limiting on all actions
+- Server-authoritative aging
+- Cryptographic trade signatures
+- Anti-bot behavioral analysis
+
+## Backwards Compatibility
+
+During migration, maintain full compatibility:
+1. All Bridge APIs continue working
+2. Gradual data migration
+3. Feature flags for new systems
+4. Dual-mode operation period
+
+## Contributing
+
+### For Bridge Features
+Follow existing patterns in `src/`
+
+### For Dynasty Trader Features
+1. Read game design docs in `docs/game-design/`
+2. Follow new patterns in character/dynasty modules
+3. Ensure backwards compatibility
+4. Add comprehensive tests
+
+## References
+
+### Game Design Documentation
+- [Project Overview](docs/game-design/PROJECT_OVERVIEW.md)
+- [Complete Recommendations](docs/game-design/recommendations-hybrid.md)
+- [Migration Plan](docs/game-design/synthesis/bridge-migration-plan.md)
+- [Web & Discord Architecture](docs/game-design/synthesis/web-discord-architecture.md)
+
+### Quick Links
+- Original Bridge features remain in existing files
+- New Dynasty Trader code goes in new modules
+- Frontend development starts fresh in `frontend/`
+- Discord bot is separate Node.js project
+
+## Environment Variables
 
 ```bash
-cargo build              # Build the project
-cargo run --bin bridge   # Run the main application
-cargo run --bin migrate  # Run database migrations
-cargo run --bin test_db  # Test database connection
-cargo check              # Quick compilation check
-cargo fmt                # Format code
-cargo clippy             # Lint the code
-cargo test               # Run tests
-cargo doc --open         # Generate documentation
+# Existing (Bridge)
+DATABASE_URL=mysql://user:pass@localhost/bridge
+JWT_SECRET=your-secret
+PORT=3113
+
+# New (Dynasty Trader)
+DATABASE_URL=postgresql://user:pass@localhost/dynasty_trader
+TIMESCALE_URL=postgresql://user:pass@localhost/dynasty_trader
+REDIS_URL=redis://localhost:6379
+DISCORD_CLIENT_ID=your-discord-app-id
+DISCORD_CLIENT_SECRET=your-discord-secret
+DISCORD_BOT_TOKEN=your-bot-token
 ```
 
-## Available Binaries
-
-- **bridge**: Main API server application
-- **migrate**: Database migration runner
-- **test_db**: Database connection tester
-
-## Architecture & Key Components
-
-### Tech Stack
-
-- **Language**: Rust (Edition 2021)
-- **Framework**: Axum 0.7 (REST API framework)
-- **Database**: MariaDB/MySQL with SQLx
-- **Auth**: Standard Email/Password (Argon2)
-- **Secrets**: Stored in the database (only DB credentials live in `.env`)
-- **Runtime**: Tokio (async runtime)
-
-### Core Modules
-
-- **User Management**
-  - Login via email/password
-  - Avatars, linked games, user profiles
-  - Messaging between users
-
-- **Inventory System**
-  - Items with rarity, modifiers, and credit value
-  - Modifiers are **roguelike** in nature, with effects randomly selected from a categorized perk pool
-  - Inventory and rewards per user
-  - Trading system for direct player-to-player item exchange
-
-- **Social Graph**
-  - Friends, clans, and traders
-  - Clan federation and clan-based ranks
-  - Clan-shared inventories
-
-- **Marketplace**
-  - Auction House for open trades
-  - Clan auto-listing integration
-  - Public vs Clan-locked traders
-
-### Security
-
-- Secrets and configuration (besides DB login) stored securely in the database
-- .env file only contains database connection information
-
-## File & Directory Guidelines
-
-```
-src/
-├── api/         # Route handlers
-├── db/          # Database models and queries
-├── auth/        # Authentication providers
-├── models/      # Core domain models (User, InventoryItem, Clan, etc.)
-├── services/    # Business logic
-├── utils/       # Helper utilities
-main.rs          # Entrypoint
-```
-
-## Database Schema
-
-The database uses the following main tables:
-- `users` - User accounts and profiles
-- `inventory_items` - Item definitions with base stats
-- `user_inventory` - User-owned items with modifiers
-- `item_modifiers` - Roguelike modifiers and perks
-- `clans` - Clan information
-- `clan_members` - Clan membership and ranks
-- `trades` - Active trades between players
-- `marketplace_listings` - Auction house listings
-- `messages` - User-to-user messages
-- `app_secrets` - Application configuration and secrets
-
-## API Endpoints Structure
-
-### Authentication (Public)
-- `POST /api/v1/auth/register` - Register new user
-- `POST /api/v1/auth/login` - Login with email/password
-
-### Protected Endpoints (Require JWT)
-- `/api/v1/users/*` - User management
-  - `GET /api/v1/users/me` - Get current user
-  - `GET /api/v1/users/:id` - Get user by ID
-- `/api/v1/inventory/*` - Inventory operations
-  - `GET /api/v1/inventory` - Get user inventory
-  - `GET /api/v1/inventory/items` - Get available items
-- `/api/v1/trading/*` - Trading system
-  - `GET /api/v1/trading` - Get user trades
-  - `GET /api/v1/trading/active` - Get active trades
-- `/api/v1/clans/*` - Clan management
-  - `GET /api/v1/clans` - List clans
-  - `GET /api/v1/clans/my` - Get user's clan
-- `/api/v1/marketplace/*` - Auction house
-  - `GET /api/v1/marketplace` - Get listings
-  - `GET /api/v1/marketplace/my` - Get user's listings
-- `/api/v1/messages/*` - Messaging system
-  - `GET /api/v1/messages` - Get messages
-  - `GET /api/v1/messages/unread` - Get unread count
-
-## Contribution Checklist
-
-- [ ] Code formatted with `cargo fmt`
-- [ ] Passes `cargo clippy` with no major warnings
-- [ ] No secrets in `.env` other than DB connection info
-- [ ] Unit tests for each new feature
-- [ ] Database migrations are clearly documented
-- [ ] API endpoints follow RESTful conventions
-- [ ] Error responses use consistent format
+This project is transitioning from a multi-game inventory bridge to a groundbreaking roguelike economy game. The existing codebase provides an excellent foundation that we're building upon rather than replacing.
