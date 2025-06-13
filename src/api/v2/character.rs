@@ -1,36 +1,52 @@
-use crate::utils::Claims;
 use crate::models::{CreateCharacterRequest, CharacterDeathRequest};
 use crate::services::CharacterService;
-use crate::utils::AppError;
+use crate::utils::{AppError, Claims};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::Json,
     Extension,
 };
+use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
-/// Create a new character
+#[derive(Debug, Deserialize)]
+pub struct SimpleCreateCharacterRequest {
+    pub name: String,
+    pub dynasty_id: Uuid,
+}
+
 pub async fn create_character(
     State(pool): State<Arc<PgPool>>,
     Extension(claims): Extension<Claims>,
-    Json(request): Json<CreateCharacterRequest>,
+    Json(req): Json<SimpleCreateCharacterRequest>,
 ) -> Result<Json<Value>, AppError> {
     let user_id = Uuid::parse_str(&claims.sub)?;
     
-    // Get user's dynasty
-    let dynasty_id: Uuid = sqlx::query_scalar(
-        "SELECT id FROM dynasties WHERE user_id = $1 AND is_active = true"
+    // Verify user owns this dynasty
+    let owns_dynasty: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM dynasties WHERE id = $1 AND user_id = $2)"
     )
+    .bind(req.dynasty_id)
     .bind(user_id)
     .fetch_one(&*pool)
-    .await
-    .map_err(|_| AppError::NotFound("User has no active dynasty".to_string()))?;
+    .await?;
+    
+    if !owns_dynasty {
+        return Err(AppError::Forbidden);
+    }
+    
+    // Create the internal request
+    let request = CreateCharacterRequest {
+        dynasty_id: req.dynasty_id,
+        name: req.name,
+        parent_character_id: None,
+    };
 
-    let character = CharacterService::create_character(&pool, dynasty_id, request).await?;
+    let character = CharacterService::create_character(&pool, req.dynasty_id, request).await?;
 
     Ok(Json(json!({
         "character": character

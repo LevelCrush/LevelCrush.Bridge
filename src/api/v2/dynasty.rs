@@ -119,3 +119,84 @@ pub async fn modify_reputation(
         "new_reputation": new_reputation
     })))
 }
+
+#[derive(Debug, Deserialize)]
+pub struct SimpleCreateCharacterRequest {
+    pub name: String,
+    pub dynasty_id: Uuid,
+}
+
+/// Create a new character (temporary location)
+pub async fn create_character_temp(
+    State(pool): State<Arc<PgPool>>,
+    Extension(claims): Extension<Claims>,
+    Json(req): Json<SimpleCreateCharacterRequest>,
+) -> Result<Json<Value>, AppError> {
+    let user_id = Uuid::parse_str(&claims.sub)?;
+    
+    // Verify user owns this dynasty
+    let owns_dynasty: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM dynasties WHERE id = $1 AND user_id = $2)"
+    )
+    .bind(req.dynasty_id)
+    .bind(user_id)
+    .fetch_one(&*pool)
+    .await?;
+    
+    if !owns_dynasty {
+        return Err(AppError::Forbidden);
+    }
+    
+    // Generate initial stats with some randomness
+    use rand::Rng;
+    let mut rng = rand::thread_rng();
+    
+    // Base stats plus random bonus (ensures all stats are positive)
+    let health = 50 + rng.gen_range(0..31);        // 50-80
+    let stamina = 50 + rng.gen_range(0..31);       // 50-80
+    let charisma = 40 + rng.gen_range(0..41);      // 40-80
+    let intelligence = 40 + rng.gen_range(0..41);  // 40-80
+    let luck = 30 + rng.gen_range(0..51);          // 30-80
+
+    let character_id = Uuid::new_v4();
+    let now = chrono::Utc::now();
+    
+    // Insert character directly
+    sqlx::query!(
+        r#"
+        INSERT INTO characters (
+            id, dynasty_id, name, birth_date, health, stamina,
+            charisma, intelligence, luck, generation,
+            parent_character_id, inheritance_received,
+            is_alive, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1, NULL, 0, true, $4, $4)
+        "#,
+        character_id,
+        req.dynasty_id,
+        req.name,
+        now,
+        health,
+        stamina,
+        charisma,
+        intelligence,
+        luck
+    )
+    .execute(&*pool)
+    .await?;
+
+    Ok(Json(json!({
+        "character": {
+            "id": character_id,
+            "dynasty_id": req.dynasty_id,
+            "name": req.name,
+            "health": health,
+            "stamina": stamina,
+            "charisma": charisma,
+            "intelligence": intelligence,
+            "luck": luck,
+            "birth_date": now,
+            "is_alive": true,
+            "generation": 1
+        }
+    })))
+}

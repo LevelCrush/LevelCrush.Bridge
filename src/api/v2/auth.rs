@@ -140,7 +140,7 @@ pub async fn register(
     sqlx::query!(
         r#"
         INSERT INTO refresh_tokens (user_id, token, expires_at)
-        VALUES ($1, $2, NOW() + INTERVAL '7 days')
+        VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '7 days')
         "#,
         user.id,
         refresh_token
@@ -208,7 +208,7 @@ pub async fn login(
     sqlx::query!(
         r#"
         INSERT INTO refresh_tokens (user_id, token, expires_at)
-        VALUES ($1, $2, NOW() + INTERVAL '7 days')
+        VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '7 days')
         "#,
         user.id,
         refresh_token
@@ -241,7 +241,7 @@ pub async fn refresh_token(
     let token_record = sqlx::query!(
         r#"
         SELECT user_id FROM refresh_tokens 
-        WHERE token = $1 AND expires_at > NOW() AND revoked_at IS NULL
+        WHERE token = $1 AND expires_at > CURRENT_TIMESTAMP AND revoked_at IS NULL
         "#,
         payload.refresh_token
     )
@@ -252,7 +252,7 @@ pub async fn refresh_token(
     // Revoke old refresh token
     sqlx::query!(
         r#"
-        UPDATE refresh_tokens SET revoked_at = NOW() WHERE token = $1
+        UPDATE refresh_tokens SET revoked_at = CURRENT_TIMESTAMP WHERE token = $1
         "#,
         payload.refresh_token
     )
@@ -266,7 +266,7 @@ pub async fn refresh_token(
     sqlx::query!(
         r#"
         INSERT INTO refresh_tokens (user_id, token, expires_at)
-        VALUES ($1, $2, NOW() + INTERVAL '7 days')
+        VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '7 days')
         "#,
         token_record.user_id,
         refresh_token
@@ -291,7 +291,7 @@ pub async fn logout(
     sqlx::query!(
         r#"
         UPDATE refresh_tokens 
-        SET revoked_at = NOW() 
+        SET revoked_at = CURRENT_TIMESTAMP 
         WHERE user_id = $1 AND revoked_at IS NULL
         "#,
         claims.sub.parse::<Uuid>().map_err(|_| AppError::Authentication("Invalid user ID".to_string()))?
