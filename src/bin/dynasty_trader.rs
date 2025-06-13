@@ -32,11 +32,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .connect(&database_url)
         .await?;
 
-    // Run any pending migrations
-    tracing::info!("Running database migrations...");
-    sqlx::migrate!("./migrations")
-        .run(&db_pool)
-        .await?;
+    // Skip automatic migrations for now
+    // TODO: Set up proper SQLx migrations with timestamps
+    tracing::info!("Skipping automatic migrations - run migrate_postgres manually");
 
     // Get JWT secret from environment (for now)
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");

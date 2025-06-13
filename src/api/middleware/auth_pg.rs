@@ -8,11 +8,11 @@ use axum::{
 use sqlx::PgPool;
 use std::sync::Arc;
 
-use crate::utils::{self, Claims};
+use crate::utils::{self};
 
 /// PostgreSQL-specific auth middleware
 pub async fn auth_middleware_pg(
-    State(pool): State<Arc<PgPool>>,
+    State(_pool): State<Arc<PgPool>>,
     mut request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
