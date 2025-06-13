@@ -1,4 +1,9 @@
-use bridge::{api, app_state::PgAppState, tasks::{AgingTask, WealthSnapshotTask}, utils};
+use bridge::{
+    api, 
+    app_state::PgAppState, 
+    tasks::{AgingTask, WealthSnapshotTask, MarketExpirationTask, MarketPriceSnapshotTask, DeathTask}, 
+    utils
+};
 
 use axum::{
     http::{header, Method},
@@ -60,6 +65,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Spawn wealth snapshot task
     let wealth_task = WealthSnapshotTask::new(Arc::new(db_pool.clone()), snapshot_interval);
     tokio::spawn(wealth_task.start());
+
+    // Spawn market tasks
+    let market_expiration_task = MarketExpirationTask::new(Arc::new(db_pool.clone()), 300); // Every 5 minutes
+    tokio::spawn(market_expiration_task.start());
+
+    let market_price_task = MarketPriceSnapshotTask::new(Arc::new(db_pool.clone()), 300); // Every 5 minutes
+    tokio::spawn(market_price_task.start());
+
+    // Spawn death check task
+    let death_task = DeathTask::new(Arc::new(db_pool.clone()), 1800); // Every 30 minutes
+    tokio::spawn(death_task.start());
 
     // Configure CORS
     let cors = CorsLayer::new()
