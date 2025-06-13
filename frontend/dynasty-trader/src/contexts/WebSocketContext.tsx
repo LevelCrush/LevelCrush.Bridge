@@ -1,11 +1,10 @@
-import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { WebSocketMessage, WebSocketMessageType } from '@/types';
 import toast from 'react-hot-toast';
 
 interface WebSocketContextType {
-  socket: Socket | null;
+  socket: WebSocket | null;
   isConnected: boolean;
   subscribe: (channel: string) => void;
   unsubscribe: (channel: string) => void;
@@ -16,146 +15,161 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
   const { tokens, isAuthenticated } = useAuth();
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const reconnectAttempts = useRef(0);
+  const reconnectTimeout = useRef<NodeJS.Timeout>();
   const maxReconnectAttempts = 5;
+  const subscribedChannels = useRef<Set<string>>(new Set());
+  const hasShownError = useRef(false);
+
+  const connect = useCallback(() => {
+    if (!isAuthenticated || !tokens?.access_token) {
+      return;
+    }
+
+    try {
+      // Use ws:// for local development, wss:// for production
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws/market`;
+      
+      const newSocket = new WebSocket(wsUrl);
+
+      newSocket.onopen = () => {
+        console.log('WebSocket connected');
+        setIsConnected(true);
+        reconnectAttempts.current = 0;
+        hasShownError.current = false;
+        
+        // Send auth message
+        newSocket.send(JSON.stringify({
+          type: 'auth',
+          token: tokens.access_token,
+        }));
+
+        // Resubscribe to channels
+        subscribedChannels.current.forEach(channel => {
+          newSocket.send(JSON.stringify({
+            type: WebSocketMessageType.Subscribe,
+            channel,
+          }));
+        });
+      };
+
+      newSocket.onclose = () => {
+        console.log('WebSocket disconnected');
+        setIsConnected(false);
+        setSocket(null);
+
+        // Attempt to reconnect if we haven't exceeded max attempts
+        if (reconnectAttempts.current < maxReconnectAttempts && isAuthenticated) {
+          reconnectAttempts.current++;
+          reconnectTimeout.current = setTimeout(() => {
+            console.log(`Attempting to reconnect... (${reconnectAttempts.current}/${maxReconnectAttempts})`);
+            connect();
+          }, Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000));
+        } else if (!hasShownError.current && reconnectAttempts.current >= maxReconnectAttempts) {
+          hasShownError.current = true;
+          // Only show error after multiple failed attempts
+          console.warn('Failed to connect to real-time updates after multiple attempts');
+        }
+      };
+
+      newSocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+
+      newSocket.onmessage = (event) => {
+        try {
+          const message: WebSocketMessage = JSON.parse(event.data);
+          
+          switch (message.type) {
+            case WebSocketMessageType.MarketUpdate:
+              // Handle market updates - will be consumed by market components
+              break;
+              
+            case WebSocketMessageType.CharacterDeath:
+              // Show notification for character deaths
+              const deathData = message.data;
+              toast(`${deathData.character_name} of ${deathData.dynasty_name} has died at age ${deathData.age}`, {
+                icon: '💀',
+                duration: 5000,
+              });
+              break;
+              
+            case WebSocketMessageType.Error:
+              console.error('WebSocket error message:', message.data.message);
+              break;
+              
+            default:
+              // Other message types handled by specific components
+              break;
+          }
+        } catch (err) {
+          console.error('Failed to parse WebSocket message:', err);
+        }
+      };
+
+      setSocket(newSocket);
+    } catch (error) {
+      console.error('Failed to create WebSocket connection:', error);
+    }
+  }, [isAuthenticated, tokens?.access_token]);
 
   useEffect(() => {
     if (!isAuthenticated || !tokens?.access_token) {
       if (socket) {
-        socket.disconnect();
+        socket.close();
         setSocket(null);
         setIsConnected(false);
       }
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
       return;
     }
 
-    // Create socket connection with auth
-    const newSocket = io({
-      path: '/ws',
-      auth: {
-        token: tokens.access_token,
-      },
-      reconnection: true,
-      reconnectionAttempts: maxReconnectAttempts,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-    });
-
-    // Connection event handlers
-    newSocket.on('connect', () => {
-      console.log('WebSocket connected');
-      setIsConnected(true);
-      reconnectAttempts.current = 0;
-      
-      // Resubscribe to channels if needed
-      const subscribedChannels = localStorage.getItem('ws_subscribed_channels');
-      if (subscribedChannels) {
-        const channels = JSON.parse(subscribedChannels);
-        channels.forEach((channel: string) => {
-          newSocket.emit('message', {
-            type: WebSocketMessageType.Subscribe,
-            channel,
-          });
-        });
-      }
-    });
-
-    newSocket.on('disconnect', (reason) => {
-      console.log('WebSocket disconnected:', reason);
-      setIsConnected(false);
-    });
-
-    newSocket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
-      reconnectAttempts.current++;
-      
-      if (reconnectAttempts.current >= maxReconnectAttempts) {
-        toast.error('Failed to connect to real-time updates');
-      }
-    });
-
-    // Message handlers
-    newSocket.on('message', (message: WebSocketMessage) => {
-      switch (message.type) {
-        case WebSocketMessageType.MarketUpdate:
-          // Handle market updates - will be consumed by market components
-          break;
-          
-        case WebSocketMessageType.CharacterDeath:
-          // Show notification for character deaths
-          const deathData = message.data;
-          toast(`${deathData.character_name} of ${deathData.dynasty_name} has died at age ${deathData.age}`, {
-            icon: '💀',
-            duration: 5000,
-          });
-          break;
-          
-        case WebSocketMessageType.Error:
-          toast.error(message.data.message);
-          break;
-          
-        default:
-          // Other message types handled by specific components
-          break;
-      }
-    });
-
-    setSocket(newSocket);
+    connect();
 
     return () => {
-      newSocket.disconnect();
+      if (socket) {
+        socket.close();
+      }
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
     };
-  }, [isAuthenticated, tokens?.access_token]);
+  }, [isAuthenticated, tokens?.access_token, connect]);
 
-  const subscribe = (channel: string) => {
-    if (!socket || !isConnected) {
-      console.warn('Cannot subscribe: WebSocket not connected');
-      return;
+  const subscribe = useCallback((channel: string) => {
+    subscribedChannels.current.add(channel);
+    
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: WebSocketMessageType.Subscribe,
+        channel,
+      }));
     }
+  }, [socket]);
 
-    socket.emit('message', {
-      type: WebSocketMessageType.Subscribe,
-      channel,
-    });
-
-    // Store subscribed channels for reconnection
-    const stored = localStorage.getItem('ws_subscribed_channels');
-    const channels = stored ? JSON.parse(stored) : [];
-    if (!channels.includes(channel)) {
-      channels.push(channel);
-      localStorage.setItem('ws_subscribed_channels', JSON.stringify(channels));
+  const unsubscribe = useCallback((channel: string) => {
+    subscribedChannels.current.delete(channel);
+    
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: WebSocketMessageType.Unsubscribe,
+        channel,
+      }));
     }
-  };
+  }, [socket]);
 
-  const unsubscribe = (channel: string) => {
-    if (!socket || !isConnected) {
-      return;
-    }
-
-    socket.emit('message', {
-      type: WebSocketMessageType.Unsubscribe,
-      channel,
-    });
-
-    // Remove from stored channels
-    const stored = localStorage.getItem('ws_subscribed_channels');
-    if (stored) {
-      const channels = JSON.parse(stored);
-      const filtered = channels.filter((ch: string) => ch !== channel);
-      localStorage.setItem('ws_subscribed_channels', JSON.stringify(filtered));
-    }
-  };
-
-  const sendMessage = (message: WebSocketMessage) => {
-    if (!socket || !isConnected) {
+  const sendMessage = useCallback((message: WebSocketMessage) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(message));
+    } else {
       console.warn('Cannot send message: WebSocket not connected');
-      return;
     }
-
-    socket.emit('message', message);
-  };
+  }, [socket]);
 
   const value: WebSocketContextType = {
     socket,
