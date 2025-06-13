@@ -86,6 +86,13 @@ export default function MarketPage() {
     }
   }, [livingCharacters, selectedCharacterId]);
 
+  // Set default selected region
+  useEffect(() => {
+    if (!selectedRegion && regions.length > 0) {
+      setSelectedRegion(regions[0]);
+    }
+  }, [regions, selectedRegion]);
+
   // Subscribe to market updates for selected region
   useEffect(() => {
     if (!selectedRegion || !socket) return;
