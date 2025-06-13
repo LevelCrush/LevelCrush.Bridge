@@ -1,11 +1,9 @@
 use crate::models::{Character, Dynasty, MarketEvent, MarketEventType};
 use crate::services::MarketService;
 use crate::utils::AppError;
-use crate::api::websocket::{MarketBroadcaster, broadcast_death_announcement};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use sqlx::{PgPool, Transaction, Postgres};
-use std::sync::Arc;
 use std::str::FromStr;
 use uuid::Uuid;
 

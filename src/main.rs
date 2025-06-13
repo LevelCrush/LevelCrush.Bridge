@@ -80,9 +80,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::new()
         // Dynasty Trader API routes
         .nest("/api/v2", api::v2::routes(Arc::new(db_pool.clone())))
-        // WebSocket endpoint
-        .route("/ws/market", get(websocket_handler))
-        .with_state(app_state.clone())
+        // WebSocket endpoint - needs to be in a separate router with DynastyTraderState
+        .nest("/ws", Router::new()
+            .route("/market", get(websocket_handler))
+            .with_state(app_state.clone())
+        )
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
