@@ -1,9 +1,11 @@
 pub mod api;
+pub mod app_state;
 pub mod auth;
 pub mod db;
 pub mod models;
 pub mod services;
 pub mod utils;
+pub mod tasks;
 
 pub struct AppState {
     pub db: sqlx::MySqlPool,

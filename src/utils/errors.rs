@@ -4,7 +4,6 @@ use axum::{
     Json,
 };
 use serde::Serialize;
-use std::fmt;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AppError {
@@ -20,8 +19,11 @@ pub enum AppError {
     #[error("Not found: {0}")]
     NotFound(String),
 
+    #[error("Forbidden")]
+    Forbidden,
+    
     #[error("Forbidden: {0}")]
-    Forbidden(String),
+    ForbiddenWithReason(String),
 
     #[error("Bad request: {0}")]
     BadRequest(String),
@@ -31,6 +33,9 @@ pub enum AppError {
 
     #[error("Conflict: {0}")]
     Conflict(String),
+    
+    #[error("Invalid UUID")]
+    InvalidUuid(#[from] uuid::Error),
 }
 
 #[derive(Serialize)]
@@ -46,10 +51,12 @@ impl IntoResponse for AppError {
             AppError::Validation(_) => (StatusCode::BAD_REQUEST, "validation_error"),
             AppError::Authentication(_) => (StatusCode::UNAUTHORIZED, "authentication_error"),
             AppError::NotFound(_) => (StatusCode::NOT_FOUND, "not_found"),
-            AppError::Forbidden(_) => (StatusCode::FORBIDDEN, "forbidden"),
+            AppError::Forbidden => (StatusCode::FORBIDDEN, "forbidden"),
+            AppError::ForbiddenWithReason(_) => (StatusCode::FORBIDDEN, "forbidden"),
             AppError::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request"),
             AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error"),
             AppError::Conflict(_) => (StatusCode::CONFLICT, "conflict"),
+            AppError::InvalidUuid(_) => (StatusCode::BAD_REQUEST, "invalid_uuid"),
         };
 
         let body = Json(ErrorResponse {
@@ -69,8 +76,12 @@ impl AppError {
         AppError::NotFound(format!("{} not found", entity))
     }
 
-    pub fn forbidden(reason: &str) -> Self {
-        AppError::Forbidden(reason.to_string())
+    pub fn forbidden() -> Self {
+        AppError::Forbidden
+    }
+    
+    pub fn forbidden_with_reason(reason: &str) -> Self {
+        AppError::ForbiddenWithReason(reason.to_string())
     }
 
     pub fn bad_request(reason: &str) -> Self {

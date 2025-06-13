@@ -7,6 +7,8 @@ mod middleware;
 mod trading;
 mod users;
 
+pub mod v2;
+
 use axum::{middleware as axum_middleware, Router};
 use std::sync::Arc;
 

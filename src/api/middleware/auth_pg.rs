@@ -5,33 +5,34 @@ use axum::{
     middleware::Next,
     response::Response,
 };
+use sqlx::PgPool;
 use std::sync::Arc;
 
-use crate::{utils::{self, Claims}, AppState};
+use crate::utils::{self, Claims};
 
-#[derive(Clone)]
-pub struct AuthUser {
-    pub user_id: String,
-}
-
-pub async fn auth_middleware(
-    State(state): State<Arc<AppState>>,
+/// PostgreSQL-specific auth middleware
+pub async fn auth_middleware_pg(
+    State(pool): State<Arc<PgPool>>,
     mut request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let headers = request.headers();
 
-    // Skip auth for auth routes
-    if request.uri().path().starts_with("/api/v1/auth") {
+    // Skip auth for public routes
+    if request.uri().path().starts_with("/api/v2/dynasties/leaderboard") 
+        || request.uri().path().starts_with("/api/v2/dynasties/") && !request.uri().path().contains("/me") {
         return Ok(next.run(request).await);
     }
 
     // Extract token from Authorization header
     let token = extract_token(headers).ok_or(StatusCode::UNAUTHORIZED)?;
 
+    // Get JWT secret from environment for now
+    // TODO: Store in database or config
+    let jwt_secret = std::env::var("JWT_SECRET").map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
     // Validate token
-    let claims =
-        utils::validate_jwt(&token, &state.jwt_secret).map_err(|_| StatusCode::UNAUTHORIZED)?;
+    let claims = utils::validate_jwt(&token, &jwt_secret).map_err(|_| StatusCode::UNAUTHORIZED)?;
 
     // Add claims to request extensions
     request.extensions_mut().insert(claims);

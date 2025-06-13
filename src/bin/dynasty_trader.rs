@@ -1,4 +1,4 @@
-use bridge::{api, utils, AppState};
+use bridge::{api, app_state::PgAppState, tasks::{AgingTask, WealthSnapshotTask}, utils};
 
 use axum::{
     http::{header, Method},
@@ -42,10 +42,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
 
     // Create application state
-    let app_state = Arc::new(AppState {
-        db: db_pool,
+    let _app_state = Arc::new(PgAppState {
+        db: db_pool.clone(),
         jwt_secret,
     });
+
+    // Start background tasks
+    let aging_interval = env::var("AGING_TICK_INTERVAL")
+        .unwrap_or_else(|_| "3600".to_string())
+        .parse::<u64>()
+        .unwrap_or(3600);
+
+    let snapshot_interval = 3600; // 1 hour for wealth snapshots
+
+    // Spawn aging task
+    let aging_task = AgingTask::new(Arc::new(db_pool.clone()), aging_interval);
+    tokio::spawn(aging_task.start());
+
+    // Spawn wealth snapshot task
+    let wealth_task = WealthSnapshotTask::new(Arc::new(db_pool.clone()), snapshot_interval);
+    tokio::spawn(wealth_task.start());
 
     // Configure CORS
     let cors = CorsLayer::new()
@@ -55,9 +71,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Build the application router
     let app = Router::new()
-        .nest("/api/v1", api::routes(app_state.clone()))
-        // Future: Add v2 routes for Dynasty Trader specific features
-        // .nest("/api/v2", dynasty_api::routes(app_state))
+        // Keep v1 routes for backward compatibility
+        // Note: v1 routes expect MySQL, so they won't work properly with PostgreSQL
+        // .nest("/api/v1", api::routes(app_state.clone()))
+        // Add v2 routes for Dynasty Trader
+        .nest("/api/v2", api::v2::routes(Arc::new(db_pool.clone())))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())

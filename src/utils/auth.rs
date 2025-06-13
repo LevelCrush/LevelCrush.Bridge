@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::utils::errors::{AppError, Result};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: String, // user_id
     pub exp: i64,    // expiration timestamp
