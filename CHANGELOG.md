@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Frontend Fixes (2025-01-13 Evening)
+
+#### Fixed
+- **Market stats NaN issue** - Removed `average_transaction_value` field from TypeScript interface as it doesn't exist in backend
+- **Double API path bug** - Fixed service calls adding `/api/v2` prefix when ApiClient already includes it
+- **UI adjustments** - Changed market stats from 4-column to 3-column grid after removing average transaction field
+
+#### Updated
+- TypeScript `MarketStats` interface now matches backend exactly:
+  - Added `region_name` field
+  - Changed `most_traded_items` to `average_prices` (array of `ItemPriceInfo`)
+  - Changed `price_trends` to `trending_items` (array of `TrendingItem`)
+  - Removed non-existent `average_transaction_value` field
+
 ### Phase 4: Frontend Development (2025-01-13)
 
 #### Added
@@ -36,10 +50,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Filter by category and price range
   - Market statistics display
   - Purchase functionality (pending backend integration)
+  - Market item detail modal with purchase flow
+- Real-time features
+  - WebSocket integration for live updates
+  - Market price change notifications
+  - Death event toast notifications
+  - Connection status indicator
+  - Auto-reconnection with exponential backoff
+- Data visualization
+  - Price history charts using Recharts
+  - Trading volume charts
+  - 24-hour price change indicators
+  - Interactive tooltips and responsive design
+- Enhanced UX
+  - Loading skeletons for all data-fetching components
+  - Smooth animations and transitions
+  - Error states and empty states
+  - Optimistic UI updates
 - State management
   - Zustand for auth state with persistence
   - TanStack Query for server state and caching
-  - Optimistic updates for better UX
+  - WebSocket context for real-time updates
 - TypeScript interfaces
   - Complete type safety for all API responses
   - Aligned with backend Rust models
@@ -57,6 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lazy loading for better performance
 - Custom hooks for common patterns
 - Environment-based configuration
+- Utility functions for className management
+- Reusable loading skeleton components
 
 ### Phase 3: Market Systems Complete (2025-01-13)
 

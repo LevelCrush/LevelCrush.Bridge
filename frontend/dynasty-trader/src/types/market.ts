@@ -118,24 +118,25 @@ export enum MarketEventType {
 
 export interface MarketStats {
   region_id: string;
+  region_name: string;
   total_listings: number;
   total_volume_24h: string; // Decimal as string
-  average_transaction_value: string; // Decimal as string
-  most_traded_items: TradedItem[];
-  price_trends: PriceTrend[];
+  average_prices: ItemPriceInfo[];
+  trending_items: TrendingItem[];
 }
 
-export interface TradedItem {
+export interface ItemPriceInfo {
   item_id: string;
   item_name: string;
-  volume: number;
-  total_value: string; // Decimal as string
+  avg_price: string; // Decimal as string
+  price_change_24h: string; // Decimal as string
+  volume_24h: number;
 }
 
-export interface PriceTrend {
+export interface TrendingItem {
   item_id: string;
   item_name: string;
-  price_change_percentage: number;
-  current_price: string; // Decimal as string
-  previous_price: string; // Decimal as string
+  price_change_percentage: string; // Decimal as string
+  volume_increase: number;
 }
+

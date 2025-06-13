@@ -11,6 +11,9 @@ A revolutionary roguelike economy game where death drives markets and players bu
 - **Dynasty Management**: Create and manage your trading empire
 - **Character System**: Create characters, view stats, track wealth
 - **Market Interface**: Browse regional markets, view listings, make purchases
+- **Real-time Updates**: WebSocket integration for live market data
+- **Data Visualization**: Interactive price charts with Recharts
+- **Enhanced UX**: Loading skeletons, smooth animations, error handling
 - **Responsive Design**: Works on desktop and mobile devices
 - **Modern UI**: Tailwind CSS with dark theme
 
@@ -126,13 +129,35 @@ cargo doc --open         # Generate documentation
 
 ## API Documentation
 
-The API follows RESTful conventions. See `examples/api_requests.http` for example requests.
+### Dynasty Trader API (v2)
 
-### Authentication
-- Register: `POST /api/v1/auth/register`
-- Login: `POST /api/v1/auth/login`
+#### Authentication
+- Register: `POST /api/v2/auth/register`
+- Login: `POST /api/v2/auth/login`
+- Refresh: `POST /api/v2/auth/refresh`
 
-All other endpoints require a JWT token in the Authorization header:
+#### Dynasty Management
+- Create Dynasty: `POST /api/v2/dynasties`
+- Get My Dynasty: `GET /api/v2/dynasties/me`
+- Get Dynasty Stats: `GET /api/v2/dynasties/:id/stats`
+
+#### Character Management  
+- Create Character: `POST /api/v2/characters`
+- Get Characters: `GET /api/v2/characters`
+- Get Character Stats: `GET /api/v2/characters/:id/stats`
+
+#### Market System
+- Get Regions: `GET /api/v2/market/regions`
+- Get Listings: `GET /api/v2/market/regions/:id/listings`
+- Get Market Stats: `GET /api/v2/market/regions/:id/stats`
+- Create Listing: `POST /api/v2/market/listings`
+- Purchase: `POST /api/v2/market/purchase`
+
+#### WebSocket
+- Connect: `ws://localhost:3113/ws/market`
+- Channels: `market:{region_id}`, `deaths`, `events`
+
+All endpoints require a JWT token in the Authorization header:
 ```
 Authorization: Bearer <your-jwt-token>
 ```

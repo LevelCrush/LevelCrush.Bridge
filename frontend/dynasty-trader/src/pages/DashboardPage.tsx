@@ -6,6 +6,7 @@ import { characterService } from '@/services/character';
 import { Dynasty, Character } from '@/types';
 import toast from 'react-hot-toast';
 import { PlusIcon, UserGroupIcon, UserIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { CharacterCardSkeleton, StatCardSkeleton } from '@/components/LoadingSkeleton';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -240,8 +241,9 @@ export default function DashboardPage() {
           </div>
 
           {charactersLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dynasty-500"></div>
+            <div className="space-y-3">
+              <CharacterCardSkeleton />
+              <CharacterCardSkeleton />
             </div>
           ) : livingCharacters.length === 0 ? (
             <div className="text-center py-8">

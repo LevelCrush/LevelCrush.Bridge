@@ -133,22 +133,42 @@ bridge/                          # Project root
     └── game-design/          # Comprehensive game design
 ```
 
-## API Evolution
+## API Documentation
 
-### Existing Endpoints (Preserved)
-All current Bridge endpoints remain functional during migration:
-- `/api/v1/auth/*` - Authentication
-- `/api/v1/users/*` - User management
-- `/api/v1/inventory/*` - Inventory (adapting for characters)
-- `/api/v1/trading/*` - Trading (enhancing for dynasties)
-- `/api/v1/clans/*` - Clans (becoming dynasty alliances)
+### Dynasty Trader API v2 (Active)
 
-### New Endpoints (Dynasty Trader)
-- `/api/v2/characters/*` - Character management
-- `/api/v2/dynasties/*` - Dynasty operations
-- `/api/v2/markets/*` - Regional market data
-- `/api/v2/ghost/*` - Ghost market actions
-- `/ws/market` - WebSocket market stream
+#### Authentication
+- `POST /api/v2/auth/register` - Create new account
+- `POST /api/v2/auth/login` - Login with email/password
+- `POST /api/v2/auth/refresh` - Refresh access token
+
+#### Dynasty Management
+- `POST /api/v2/dynasties` - Create dynasty
+- `GET /api/v2/dynasties/me` - Get user's dynasty
+- `GET /api/v2/dynasties/:id` - Get dynasty by ID
+- `GET /api/v2/dynasties/:id/stats` - Get dynasty statistics
+
+#### Character System
+- `POST /api/v2/characters` - Create character
+- `GET /api/v2/characters` - Get dynasty characters
+- `GET /api/v2/characters/:id` - Get character details
+- `GET /api/v2/characters/:id/stats` - Get character stats (includes wealth)
+- `POST /api/v2/characters/:id/death` - Process character death
+
+#### Market System
+- `GET /api/v2/market/regions` - List all regions
+- `GET /api/v2/market/regions/:id/listings` - Get listings for region
+- `GET /api/v2/market/regions/:id/stats` - Get market statistics
+- `POST /api/v2/market/listings` - Create new listing
+- `POST /api/v2/market/purchase` - Purchase from listing
+- `GET /api/v2/market/events` - Get active market events
+
+#### WebSocket
+- `ws://localhost:3113/ws/market` - Real-time market updates
+  - Subscribe to channels: `market:{region_id}`, `deaths`, `events`
+
+### Legacy Bridge API (v1)
+Still functional but deprecated - will be removed in future versions.
 
 ## Database Schema (PostgreSQL)
 
@@ -259,3 +279,22 @@ VITE_API_URL=http://localhost:3113  # Backend API URL
 ```
 
 This project is transitioning from a multi-game inventory bridge to a groundbreaking roguelike economy game. The existing codebase provides an excellent foundation that we're building upon rather than replacing.
+
+## Known Issues & Recent Fixes
+
+### Fixed Issues ✅
+- **Character wealth showing as NaN** - Fixed by aligning TypeScript interfaces with backend models
+- **No regions available for trading** - Fixed by creating seed migration with 8 regions
+- **Market stats showing NaN for average_transaction_value** - Fixed by updating MarketStats interface to match backend (removed non-existent field)
+- **Double API path issue (/api/v2/api/v2/...)** - Fixed by removing /api/v2 prefix from service calls since ApiClient already includes it
+
+### Current Frontend Features
+- JWT authentication with automatic token refresh
+- Dynasty creation and management dashboard
+- Character creation with randomized stats (health, stamina, charisma, intelligence, luck)
+- Market browsing with 8 unique regions (Capital City, Northern Mines, etc.)
+- Real-time WebSocket updates for market changes
+- Interactive price charts using Recharts
+- Loading skeletons for smooth UX
+- Death event toast notifications
+- Market item detail modal with purchase flow

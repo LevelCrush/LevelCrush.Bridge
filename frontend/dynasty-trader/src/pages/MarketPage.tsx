@@ -1,8 +1,11 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { marketService } from '@/services/market';
 import { characterService } from '@/services/character';
 import { MarketRegion, MarketListing, MarketEvent, ItemCategory } from '@/types';
+import { useWebSocket } from '@/contexts/WebSocketContext';
+import { MarketListingSkeleton, StatCardSkeleton } from '@/components/LoadingSkeleton';
+import MarketItemModal from '@/components/MarketItemModal';
 import { 
   BuildingStorefrontIcon,
   MapPinIcon,
@@ -20,6 +23,9 @@ export default function MarketPage() {
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | null>(null);
   const [priceFilter, setPriceFilter] = useState({ min: '', max: '' });
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedListing, setSelectedListing] = useState<MarketListing | null>(null);
+  const queryClient = useQueryClient();
+  const { isConnected, socket, subscribe, unsubscribe } = useWebSocket();
 
   // Fetch regions
   const { data: regions = [], isLoading: regionsLoading } = useQuery({
@@ -63,6 +69,35 @@ export default function MarketPage() {
 
   const livingCharacters = characters.filter(c => c.is_alive);
   const activeCharacter = livingCharacters[0]; // TODO: Allow character selection
+
+  // Subscribe to market updates for selected region
+  useEffect(() => {
+    if (!selectedRegion || !socket) return;
+
+    const channel = `market:${selectedRegion.id}`;
+    subscribe(channel);
+
+    // Listen for market updates
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.channel === channel) {
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries(['market', 'listings', selectedRegion.id]);
+          queryClient.invalidateQueries(['market', 'stats', selectedRegion.id]);
+        }
+      } catch (error) {
+        console.error('Failed to parse WebSocket message:', error);
+      }
+    };
+
+    socket.addEventListener('message', handleMessage);
+
+    return () => {
+      unsubscribe(channel);
+      socket.removeEventListener('message', handleMessage);
+    };
+  }, [selectedRegion, socket, subscribe, unsubscribe, queryClient]);
 
   const handlePurchase = async (listing: MarketListing) => {
     if (!activeCharacter) {
@@ -110,8 +145,18 @@ export default function MarketPage() {
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-display font-bold text-white">Regional Markets</h1>
-          <p className="mt-2 text-slate-300">Trade goods across different regions and build your wealth.</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-display font-bold text-white">Regional Markets</h1>
+              <p className="mt-2 text-slate-300">Trade goods across different regions and build your wealth.</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-sm text-slate-400">
+                {isConnected ? 'Live Updates' : 'Connecting...'}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Market Events Alert */}
@@ -236,26 +281,30 @@ export default function MarketPage() {
             ) : (
               <>
                 {/* Market Stats */}
-                {marketStats && (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div className="card">
-                      <p className="text-sm text-slate-400">Total Listings</p>
-                      <p className="text-2xl font-bold text-white">{marketStats.total_listings}</p>
-                    </div>
-                    <div className="card">
-                      <p className="text-sm text-slate-400">24h Volume</p>
-                      <p className="text-2xl font-bold text-white">{formatPrice(marketStats.total_volume_24h)}</p>
-                    </div>
-                    <div className="card">
-                      <p className="text-sm text-slate-400">Avg Transaction</p>
-                      <p className="text-2xl font-bold text-white">{formatPrice(marketStats.average_transaction_value)}</p>
-                    </div>
-                    <div className="card">
-                      <p className="text-sm text-slate-400">Active Character</p>
-                      <p className="text-lg font-medium text-white">{activeCharacter?.name || 'None'}</p>
-                    </div>
-                  </div>
-                )}
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  {marketStats ? (
+                    <>
+                      <div className="card">
+                        <p className="text-sm text-slate-400">Total Listings</p>
+                        <p className="text-2xl font-bold text-white">{marketStats.total_listings}</p>
+                      </div>
+                      <div className="card">
+                        <p className="text-sm text-slate-400">24h Volume</p>
+                        <p className="text-2xl font-bold text-white">{formatPrice(marketStats.total_volume_24h)}</p>
+                      </div>
+                      <div className="card">
+                        <p className="text-sm text-slate-400">Active Character</p>
+                        <p className="text-lg font-medium text-white">{activeCharacter?.name || 'None'}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <StatCardSkeleton />
+                      <StatCardSkeleton />
+                      <StatCardSkeleton />
+                    </>
+                  )}
+                </div>
 
                 {/* Listings */}
                 <div className="card">
@@ -265,8 +314,10 @@ export default function MarketPage() {
                   </div>
 
                   {listingsLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dynasty-500"></div>
+                    <div className="space-y-3">
+                      <MarketListingSkeleton />
+                      <MarketListingSkeleton />
+                      <MarketListingSkeleton />
                     </div>
                   ) : listings.length === 0 ? (
                     <div className="text-center py-8">
@@ -279,7 +330,8 @@ export default function MarketPage() {
                       {listings.map((listing) => (
                         <div
                           key={listing.id}
-                          className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600 transition-colors"
+                          className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600 transition-colors cursor-pointer"
+                          onClick={() => setSelectedListing(listing)}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -324,6 +376,16 @@ export default function MarketPage() {
           </div>
         </div>
       </div>
+      
+      {/* Market Item Modal */}
+      {selectedListing && selectedRegion && (
+        <MarketItemModal
+          listing={selectedListing}
+          regionId={selectedRegion.id}
+          onClose={() => setSelectedListing(null)}
+          onPurchase={handlePurchase}
+        />
+      )}
     </div>
   );
 }
