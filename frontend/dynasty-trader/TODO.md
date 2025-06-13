@@ -122,6 +122,16 @@
    - Limited validation on character/dynasty names
    - Need better error messages
 
+6. **Aggressive Aging System** 🔥 CRITICAL
+   - Characters are created with birth_date = NOW() (0 years old)
+   - Aging task runs every hour and can kill newborns
+   - Characters can die within hours of creation
+   - Need to either:
+     - Start characters at age 16-20
+     - Adjust death probability for young characters
+     - Make aging interval configurable
+   - Current death rates: 0% (0-30), 0.1% (31-50), 1% (51-60), 5% (61-70), 15% (71-80)
+
 ## 💡 Future Enhancements
 
 ### Performance

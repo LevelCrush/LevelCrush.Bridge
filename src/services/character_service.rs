@@ -82,13 +82,13 @@ impl CharacterService {
         Ok(character)
     }
 
-    /// Get all living characters for a dynasty
+    /// Get all characters for a dynasty (both living and dead)
     pub async fn get_dynasty_characters(
         pool: &PgPool,
         dynasty_id: Uuid,
     ) -> Result<Vec<Character>, AppError> {
         let characters = sqlx::query_as::<_, Character>(
-            "SELECT * FROM characters WHERE dynasty_id = $1 AND is_alive = true ORDER BY birth_date DESC"
+            "SELECT * FROM characters WHERE dynasty_id = $1 ORDER BY is_alive DESC, birth_date DESC"
         )
         .bind(dynasty_id)
         .fetch_all(pool)

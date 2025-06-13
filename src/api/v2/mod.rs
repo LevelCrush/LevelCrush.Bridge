@@ -76,6 +76,7 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
         .route("/characters", get(character::get_dynasty_characters))
         .route("/characters/:id", get(character::get_character))
         .route("/characters/:id/stats", get(character::get_character_stats))
+        .route("/characters/:id/inventory", get(character::get_character_inventory))
         .route("/characters/:id/death", post(character::process_character_death))
         
         // Market routes
