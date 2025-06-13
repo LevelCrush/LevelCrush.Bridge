@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Frontend Enhancements (2025-01-13 Evening)
+
+#### Added
+- **Mobile Optimization**
+  - Responsive grid layouts with mobile-first breakpoints
+  - Adjusted typography sizes for mobile screens
+  - Touch-friendly tap targets and spacing
+  - Mobile-optimized modal (slides up from bottom on mobile)
+  - Sticky region selector on desktop
+  - Responsive stats cards with 2-column mobile layout
+
+- **Progressive Web App (PWA) Support**
+  - Web app manifest with app metadata and icons
+  - Service worker for offline functionality
+  - Install prompt component with native app-like installation
+  - Cache-first strategy for static assets
+  - Network-first strategy for API calls with offline fallback
+  - Background sync support for offline actions
+  - Already configured in vite.config.ts with VitePWA plugin
+
 ### Frontend Fixes (2025-01-13 Evening)
 
 #### Fixed

@@ -65,11 +65,11 @@ export default function PriceChart({
 
   return (
     <div className="card">
-      <div className="mb-4">
-        <h3 className="text-lg font-medium text-white">{itemName} Price History</h3>
-        <div className="flex items-center space-x-4 mt-2">
+      <div className="mb-3 sm:mb-4">
+        <h3 className="text-base sm:text-lg font-medium text-white">{itemName} Price History</h3>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1 sm:mt-2">
           {currentPrice && (
-            <span className="text-2xl font-bold text-white">
+            <span className="text-lg sm:text-2xl font-bold text-white">
               {parseFloat(currentPrice).toLocaleString()} gold
             </span>
           )}
@@ -86,7 +86,7 @@ export default function PriceChart({
         </div>
       </div>
 
-      <div className="h-64">
+      <div className="h-48 sm:h-64">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sortedData}>
             <defs>
@@ -134,8 +134,9 @@ export function VolumeChart({ data, isLoading = false }: { data: PriceData[]; is
   if (isLoading) {
     return (
       <div className="card">
-        <LoadingSkeleton width="150px" height="1.5rem" className="mb-4" />
-        <LoadingSkeleton variant="rectangular" height="150px" />
+        <LoadingSkeleton width="150px" height="1.5rem" className="mb-3 sm:mb-4" />
+        <LoadingSkeleton variant="rectangular" height="120px" className="sm:hidden" />
+        <LoadingSkeleton variant="rectangular" height="150px" className="hidden sm:block" />
       </div>
     );
   }

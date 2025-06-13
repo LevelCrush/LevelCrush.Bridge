@@ -143,12 +143,12 @@ export default function MarketPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="mb-4 lg:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
-              <h1 className="text-3xl font-display font-bold text-white">Regional Markets</h1>
-              <p className="mt-2 text-slate-300">Trade goods across different regions and build your wealth.</p>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Regional Markets</h1>
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-300">Trade goods across different regions and build your wealth.</p>
             </div>
             <div className="flex items-center space-x-2">
               <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -183,10 +183,10 @@ export default function MarketPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
           {/* Region Selection */}
           <div className="lg:col-span-1">
-            <div className="card">
+            <div className="card lg:sticky lg:top-4">
               <h2 className="text-lg font-medium text-white mb-4">Select Region</h2>
               <div className="space-y-2">
                 {regions.map((region) => (
@@ -281,20 +281,20 @@ export default function MarketPage() {
             ) : (
               <>
                 {/* Market Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 mb-4 lg:mb-6">
                   {marketStats ? (
                     <>
                       <div className="card">
-                        <p className="text-sm text-slate-400">Total Listings</p>
-                        <p className="text-2xl font-bold text-white">{marketStats.total_listings}</p>
+                        <p className="text-xs sm:text-sm text-slate-400">Total Listings</p>
+                        <p className="text-xl sm:text-2xl font-bold text-white">{marketStats.total_listings}</p>
                       </div>
                       <div className="card">
-                        <p className="text-sm text-slate-400">24h Volume</p>
-                        <p className="text-2xl font-bold text-white">{formatPrice(marketStats.total_volume_24h)}</p>
+                        <p className="text-xs sm:text-sm text-slate-400">24h Volume</p>
+                        <p className="text-xl sm:text-2xl font-bold text-white">{formatPrice(marketStats.total_volume_24h)}</p>
                       </div>
                       <div className="card">
-                        <p className="text-sm text-slate-400">Active Character</p>
-                        <p className="text-lg font-medium text-white">{activeCharacter?.name || 'None'}</p>
+                        <p className="text-xs sm:text-sm text-slate-400">Active Character</p>
+                        <p className="text-base sm:text-lg font-medium text-white">{activeCharacter?.name || 'None'}</p>
                       </div>
                     </>
                   ) : (

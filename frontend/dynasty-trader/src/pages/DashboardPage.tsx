@@ -88,7 +88,7 @@ export default function DashboardPage() {
   if (!dynasty) {
     return (
       <div className="min-h-screen">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="text-center">
             <UserGroupIcon className="mx-auto h-12 w-12 text-slate-400" />
             <h3 className="mt-2 text-lg font-medium text-white">No dynasty yet</h3>
@@ -167,61 +167,61 @@ export default function DashboardPage() {
   // Has dynasty - show dashboard
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-display font-bold text-white">{dynasty.name}</h1>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="mb-6 lg:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">{dynasty.name}</h1>
           {dynasty.motto && (
-            <p className="mt-1 text-lg text-slate-400 italic">"{dynasty.motto}"</p>
+            <p className="mt-1 text-base sm:text-lg text-slate-400 italic">"{dynasty.motto}"</p>
           )}
-          <div className="mt-4 flex items-center space-x-6 text-sm text-slate-300">
+          <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-6 text-xs sm:text-sm text-slate-300">
             <span>Generation {dynasty.generation}</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>Founded {new Date(dynasty.founded_at).toLocaleDateString()}</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>Reputation: {dynasty.reputation}</span>
           </div>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-6 lg:mb-8">
           <div className="card">
             <div className="flex items-center">
-              <UserIcon className="h-10 w-10 text-dynasty-400" />
-              <div className="ml-4">
-                <p className="text-sm text-slate-400">Living Characters</p>
-                <p className="text-2xl font-bold text-white">{livingCharacters.length}</p>
+              <UserIcon className="h-8 w-8 sm:h-10 sm:w-10 text-dynasty-400 flex-shrink-0" />
+              <div className="ml-2 sm:ml-4">
+                <p className="text-xs sm:text-sm text-slate-400">Living</p>
+                <p className="text-xl sm:text-2xl font-bold text-white">{livingCharacters.length}</p>
               </div>
             </div>
           </div>
           
           <div className="card">
             <div className="flex items-center">
-              <CurrencyDollarIcon className="h-10 w-10 text-green-400" />
-              <div className="ml-4">
-                <p className="text-sm text-slate-400">Dynasty Wealth</p>
-                <p className="text-2xl font-bold text-white">{parseFloat(dynasty.total_wealth).toLocaleString()}</p>
+              <CurrencyDollarIcon className="h-8 w-8 sm:h-10 sm:w-10 text-green-400 flex-shrink-0" />
+              <div className="ml-2 sm:ml-4">
+                <p className="text-xs sm:text-sm text-slate-400">Wealth</p>
+                <p className="text-xl sm:text-2xl font-bold text-white">{parseFloat(dynasty.total_wealth).toLocaleString()}</p>
               </div>
             </div>
           </div>
           
           <div className="card">
             <div className="flex items-center">
-              <UserGroupIcon className="h-10 w-10 text-blue-400" />
-              <div className="ml-4">
-                <p className="text-sm text-slate-400">Total Characters</p>
-                <p className="text-2xl font-bold text-white">{dynasty.total_characters}</p>
+              <UserGroupIcon className="h-8 w-8 sm:h-10 sm:w-10 text-blue-400 flex-shrink-0" />
+              <div className="ml-2 sm:ml-4">
+                <p className="text-xs sm:text-sm text-slate-400">Total</p>
+                <p className="text-xl sm:text-2xl font-bold text-white">{dynasty.total_characters}</p>
               </div>
             </div>
           </div>
           
           <div className="card">
             <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center">
-                <span className="text-xl">💀</span>
+              <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-slate-700 flex items-center justify-center flex-shrink-0">
+                <span className="text-base sm:text-xl">💀</span>
               </div>
-              <div className="ml-4">
-                <p className="text-sm text-slate-400">Deceased</p>
-                <p className="text-2xl font-bold text-white">{deadCharacters.length}</p>
+              <div className="ml-2 sm:ml-4">
+                <p className="text-xs sm:text-sm text-slate-400">Deceased</p>
+                <p className="text-xl sm:text-2xl font-bold text-white">{deadCharacters.length}</p>
               </div>
             </div>
           </div>

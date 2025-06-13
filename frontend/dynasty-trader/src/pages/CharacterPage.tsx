@@ -103,13 +103,13 @@ export default function CharacterPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-display font-bold text-white">Characters</h1>
-          <p className="mt-2 text-slate-300">Manage your dynasty's characters and their trading ventures.</p>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="mb-4 lg:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Characters</h1>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-300">Manage your dynasty's characters and their trading ventures.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Character List */}
           <div className="lg:col-span-1">
             <div className="card">
@@ -122,7 +122,7 @@ export default function CharacterPage() {
                     <button
                       key={character.id}
                       onClick={() => setSelectedCharacter(character)}
-                      className={`w-full text-left p-3 rounded-lg transition-colors ${
+                      className={`w-full text-left p-2 sm:p-3 rounded-lg transition-colors ${
                         selectedCharacter?.id === character.id
                           ? 'bg-dynasty-600 border border-dynasty-500'
                           : 'bg-slate-700 hover:bg-slate-600'

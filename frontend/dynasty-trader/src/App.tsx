@@ -14,6 +14,7 @@ import DynastyPage from '@/pages/DynastyPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { WebSocketProvider } from '@/contexts/WebSocketContext';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +60,7 @@ function App() {
               },
             }}
           />
+          <PWAInstallPrompt />
         </WebSocketProvider>
       </AuthProvider>
       

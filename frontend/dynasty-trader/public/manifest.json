@@ -1,0 +1,55 @@
+{
+  "name": "Dynasty Trader",
+  "short_name": "Dynasty",
+  "description": "A roguelike economy game where death drives markets and players build multi-generational trading empires",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Dynasty management screen"
+    },
+    {
+      "src": "/screenshot-2.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Market trading interface"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Market",
+      "short_name": "Market",
+      "description": "View regional markets",
+      "url": "/market",
+      "icons": [{ "src": "/market-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Character",
+      "short_name": "Character",
+      "description": "Manage your characters",
+      "url": "/character",
+      "icons": [{ "src": "/character-icon.png", "sizes": "192x192" }]
+    }
+  ]
+}

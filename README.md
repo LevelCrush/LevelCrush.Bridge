@@ -14,7 +14,8 @@ A revolutionary roguelike economy game where death drives markets and players bu
 - **Real-time Updates**: WebSocket integration for live market data
 - **Data Visualization**: Interactive price charts with Recharts
 - **Enhanced UX**: Loading skeletons, smooth animations, error handling
-- **Responsive Design**: Works on desktop and mobile devices
+- **Mobile Optimized**: Responsive design with mobile-first approach
+- **Progressive Web App**: Installable with offline support
 - **Modern UI**: Tailwind CSS with dark theme
 
 ### Backend Migration Complete

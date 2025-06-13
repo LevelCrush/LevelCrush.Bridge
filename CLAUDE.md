@@ -86,16 +86,19 @@ npm run dev
 - [x] WebSocket backend support
 - [x] Market event system
 
-### 🚧 Phase 4: Frontend (In Progress)
+### ✅ Phase 4: Frontend (Complete)
 - [x] React PWA setup
 - [x] Authentication flow
 - [x] Dynasty management
 - [x] Character creation & dashboard
-- [x] Market interface (basic)
-- [ ] Real-time WebSocket integration
-- [ ] Death animations & notifications
-- [ ] Market visualizations (charts)
-- [ ] Mobile-optimized UI
+- [x] Market interface with regions and listings
+- [x] Real-time WebSocket integration
+- [x] Death event notifications (toast)
+- [x] Market visualizations (price charts, volume charts)
+- [x] Loading skeletons for better UX
+- [x] Market item detail modal
+- [x] Mobile-optimized UI
+- [x] PWA manifest and service worker
 
 ### Phase 5: Discord Bot (Upcoming)
 - [ ] OAuth2 integration
