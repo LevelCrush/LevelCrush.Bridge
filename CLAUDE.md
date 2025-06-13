@@ -6,8 +6,19 @@ This project is evolving from "Bridge" (a multi-game inventory system) into **Dy
 
 ## Current Status
 
-**Phase**: Migration from Bridge → Dynasty Trader
-**Architecture**: Leveraging existing Rust/Axum backend, adding roguelike economy features
+**Phase**: Core Systems Implementation
+**Completed**: 
+- ✅ PostgreSQL + TimescaleDB setup
+- ✅ Character lifecycle (birth, aging, death)
+- ✅ Dynasty system with inheritance
+- ✅ API v2 endpoints for Dynasty Trader
+- ✅ Background tasks for aging and snapshots
+
+**In Progress**:
+- 🔄 Market mechanics with TimescaleDB
+- 🔄 Death impact calculations
+- 🔄 Testing and documentation
+
 **Next Steps**: See [Migration Plan](docs/game-design/synthesis/bridge-migration-plan.md)
 
 ## Quick Start
@@ -18,8 +29,10 @@ cp .env.example .env
 cargo run --bin migrate
 cargo run --bin bridge
 
-# Coming soon: Dynasty Trader mode
-cargo run --bin dynasty-trader
+# Dynasty Trader mode (NEW!)
+cp .env.dynasty.example .env.dynasty  # See .env.dynasty for TimescaleDB config
+cargo run --bin migrate_postgres       # Run PostgreSQL migrations
+cargo run --bin dynasty_trader         # Start Dynasty Trader server
 ```
 
 ## Architecture Overview
@@ -60,16 +73,16 @@ cargo run --bin dynasty-trader
 
 ## Development Roadmap
 
-### Phase 1: Database Migration (Week 1)
-- [ ] Migrate from MariaDB to PostgreSQL
-- [ ] Add TimescaleDB for market data
-- [ ] Create character/dynasty tables
-- [ ] Implement aging system
+### Phase 1: Database Migration (Week 1) ✅
+- [x] Migrate from MariaDB to PostgreSQL
+- [x] Add TimescaleDB for market data  
+- [x] Create character/dynasty tables
+- [x] Implement aging system
 
-### Phase 2: Core Mechanics (Week 2-3)
-- [ ] Character lifecycle (birth → death)
-- [ ] Inheritance system
-- [ ] Death market impacts
+### Phase 2: Core Mechanics (Week 2-3) ✅
+- [x] Character lifecycle (birth → death)
+- [x] Inheritance system
+- [x] Death market impacts (partial)
 - [ ] Basic ghost mechanics
 
 ### Phase 3: Market Systems (Week 4-5)

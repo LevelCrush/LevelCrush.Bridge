@@ -5,7 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - Dynasty Trader
+
+### Phase 2: Character Lifecycle (2025-01-06)
+
+#### Added
+- Complete character lifecycle system
+  - Birth with randomized stats (health, stamina, charisma, intelligence, luck)
+  - Aging mechanics that degrade health/stamina over time
+  - Death from old age based on probabilistic model
+  - Character stats affect trading bonuses
+- Dynasty management system
+  - Create and manage multi-generational trading empires
+  - Reputation and legacy point tracking
+  - Dynasty perks unlocked by achievements
+  - Prestige calculation based on wealth, generation, and reputation
+- Inheritance mechanics
+  - Wealth passes to children on death
+  - Dynasty treasury for childless characters
+  - 80% base inheritance rate with reputation bonuses
+- API v2 endpoints
+  - `/api/v2/dynasties/*` - Dynasty management
+  - `/api/v2/characters/*` - Character operations
+  - `/api/v2/dynasties/leaderboard` - Global rankings
+- Background tasks
+  - Aging task runs every hour (configurable)
+  - Dynasty wealth snapshots for historical tracking
+  - Automatic death processing for old characters
+- PostgreSQL-specific auth middleware
+- Comprehensive error handling with proper HTTP status codes
+
+#### Technical Improvements
+- Added rust_decimal for precise financial calculations
+- Created generic executor patterns for database operations
+- Implemented proper transaction handling for complex operations
+- Added TimescaleDB continuous aggregates for market data
+
+### Phase 1: Database Migration (2025-01-06)
+
+#### Added
+- PostgreSQL + TimescaleDB support
+  - Dual database configuration (MySQL for Bridge, PostgreSQL for Dynasty)
+  - TimescaleDB hypertables for time-series market data
+  - Continuous aggregates for hourly/daily price summaries
+  - Data retention policies for historical data
+- Database schema for Dynasty Trader
+  - Characters with full lifecycle support
+  - Dynasties with generational tracking
+  - Regional markets with price history
+  - Death events that impact markets
+  - Trade routes between regions
+  - Market events system
+- Migration tooling
+  - `migrate_postgres` binary for PostgreSQL migrations
+  - Improved SQL parsing for complex statements
+  - Support for PostgreSQL-specific features (dollar quoting, etc.)
+- Comprehensive TimescaleDB documentation
+  - Best practices and common patterns
+  - Performance optimization tips
+  - Troubleshooting guide
+
+#### Changed
+- Updated Cargo.toml to support both MySQL and PostgreSQL
+- Added new binaries: `dynasty_trader`, `migrate_postgres`
+
+#### Infrastructure
+- `.env.dynasty` configuration for TimescaleDB connection
+- Separate migration paths for MySQL and PostgreSQL
+- Docker support for TimescaleDB on port 5433
+
+## [0.1.0] - Bridge (Original)
 
 ### Added
 - Initial project setup with Axum 0.7 web framework
