@@ -32,13 +32,14 @@ export interface MarketRegion {
   id: string;
   name: string;
   description: string;
-  coordinates_x: number;
-  coordinates_y: number;
-  population: number;
-  wealth_level: number;
-  primary_exports: string[];
-  primary_imports: string[];
+  tax_rate: string;
+  safety_level: number;
+  prosperity_level: number;
   created_at: string;
+  // Frontend display helpers
+  population?: number;
+  wealth_level?: number;
+  is_capital?: boolean;
 }
 
 export interface MarketListing {

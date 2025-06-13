@@ -1,17 +1,27 @@
 export interface Character {
   id: string;
-  user_id: string;
   dynasty_id: string;
   name: string;
-  age: number;
-  health: number;
-  max_health: number;
-  location_id: string;
-  wealth: string; // Decimal as string
-  died_at?: string;
+  birth_date: string;
+  death_date?: string;
   death_cause?: string;
+  health: number;
+  stamina: number;
+  charisma: number;
+  intelligence: number;
+  luck: number;
+  location_id?: string;
+  is_alive: boolean;
+  generation: number;
+  parent_character_id?: string;
+  inheritance_received: string;
   created_at: string;
   updated_at: string;
+  // Frontend computed
+  age?: number;
+  wealth?: string;
+  max_health?: number;
+  max_stamina?: number;
 }
 
 export interface CreateCharacterRequest {
@@ -21,10 +31,17 @@ export interface CreateCharacterRequest {
 }
 
 export interface CharacterStats {
-  trading_skill: number;
-  negotiation_skill: number;
-  endurance: number;
+  character_id: string;
+  name: string;
+  age: number;
+  health: number;
+  stamina: number;
+  charisma: number;
+  intelligence: number;
   luck: number;
+  trading_bonus: number;
+  location?: string;
+  wealth: string;
 }
 
 export interface CharacterInventory {

@@ -6,36 +6,26 @@ This project is evolving from "Bridge" (a multi-game inventory system) into **Dy
 
 ## Current Status
 
-**Phase**: Core Implementation Complete (Phase 1-3) ✅
-**Architecture**: Rust/Axum backend with PostgreSQL + TimescaleDB
-
-**Completed**: 
-- ✅ PostgreSQL + TimescaleDB setup and migrations
-- ✅ Character lifecycle (birth, aging, death)
-- ✅ Dynasty system with inheritance (10% death tax)
-- ✅ Market mechanics with regional economies
-- ✅ Death impact calculations and ghost markets
-- ✅ WebSocket support for real-time updates
-- ✅ Comprehensive test suite
-- ✅ API v2 endpoints for Dynasty Trader
-
-**Next Steps**: 
-- Phase 4: React PWA Frontend (Week 6-8)
-- Phase 5: Discord Bot Integration (Week 9)
-- See [Progress Summary](docs/dynasty-trader-progress-summary.md)
+**Phase**: Frontend Development Active! 🚀
+**Backend**: Migration complete - PostgreSQL/TimescaleDB with all core systems
+**Frontend**: React PWA live with authentication, dynasty management, character creation, and market trading
+**Architecture**: Rust/Axum backend + React frontend + PostgreSQL/TimescaleDB
+**Next Steps**: Polish UI, add real-time WebSocket updates, implement death mechanics in frontend
 
 ## Quick Start
 
 ```bash
-# Current Bridge setup (still works)
-cp .env.example .env
-cargo run --bin migrate
-cargo run --bin bridge
+# Backend setup
+cp .env.dynasty .env
+cargo run --bin migrate_postgres
+cargo run --bin dynasty-trader
 
-# Dynasty Trader mode (NEW!)
-cp .env.dynasty.example .env.dynasty  # Configure PostgreSQL + TimescaleDB
-./scripts/run_dynasty_migrations.sh   # Run all migrations safely
-cargo run --bin dynasty_trader        # Start Dynasty Trader server on port 3113
+# Frontend setup (in another terminal)
+cd frontend/dynasty-trader
+npm install
+npm run dev
+
+# Visit http://localhost:5173 to play!
 ```
 
 ## Architecture Overview
@@ -46,13 +36,15 @@ cargo run --bin dynasty_trader        # Start Dynasty Trader server on port 3113
 - **Auth**: Email/password with JWT
 - **Features**: Inventory, trading, clans, marketplace
 
-### Target Stack (Dynasty Trader)
-- **Backend**: Rust + Axum (unchanged)
-- **Database**: PostgreSQL + TimescaleDB (for time-series market data)
-- **Frontend**: React PWA (Progressive Web App)
-- **Discord**: Bot for notifications and trading
-- **Real-time**: WebSockets for live market data
-- **Auth**: Discord OAuth2 + existing system
+### Current Stack (Dynasty Trader)
+- **Backend**: Rust + Axum 0.7 ✅
+- **Database**: PostgreSQL + TimescaleDB ✅
+- **Frontend**: React PWA with TypeScript ✅
+- **Styling**: Tailwind CSS with custom dark theme ✅
+- **State**: TanStack Query + Zustand ✅
+- **Auth**: JWT with persistent sessions ✅
+- **Real-time**: WebSockets (backend ready, frontend pending)
+- **Discord**: Bot planned for next phase
 
 ## Core Game Concepts
 
@@ -76,31 +68,36 @@ cargo run --bin dynasty_trader        # Start Dynasty Trader server on port 3113
 
 ## Development Roadmap
 
-### Phase 1: Database Migration (Week 1) ✅
+### ✅ Phase 1: Database Migration (Complete)
 - [x] Migrate from MariaDB to PostgreSQL
-- [x] Add TimescaleDB for market data  
+- [x] Add TimescaleDB for market data
 - [x] Create character/dynasty tables
 - [x] Implement aging system
 
-### Phase 2: Core Mechanics (Week 2-3) ✅
+### ✅ Phase 2: Core Mechanics (Complete)
 - [x] Character lifecycle (birth → death)
 - [x] Inheritance system
 - [x] Death market impacts
 - [x] Basic ghost mechanics
 
-### Phase 3: Market Systems (Week 4-5) ✅
+### ✅ Phase 3: Market Systems (Complete)
 - [x] Regional market separation
-- [x] Price history tracking with TimescaleDB
-- [x] WebSocket real-time updates
+- [x] Price history tracking
+- [x] WebSocket backend support
 - [x] Market event system
 
-### Phase 4: Frontend (Week 6-8)
-- [ ] React PWA setup
-- [ ] Trading interface
-- [ ] Dynasty management
-- [ ] Market visualizations
+### 🚧 Phase 4: Frontend (In Progress)
+- [x] React PWA setup
+- [x] Authentication flow
+- [x] Dynasty management
+- [x] Character creation & dashboard
+- [x] Market interface (basic)
+- [ ] Real-time WebSocket integration
+- [ ] Death animations & notifications
+- [ ] Market visualizations (charts)
+- [ ] Mobile-optimized UI
 
-### Phase 5: Discord Bot (Week 9)
+### Phase 5: Discord Bot (Upcoming)
 - [ ] OAuth2 integration
 - [ ] Market alerts
 - [ ] Death announcements
@@ -112,21 +109,28 @@ cargo run --bin dynasty_trader        # Start Dynasty Trader server on port 3113
 bridge/                          # Project root
 ├── src/                        # Rust backend
 │   ├── models/                 # Domain models
-│   │   ├── character.rs       # NEW: Character lifecycle
-│   │   ├── dynasty.rs         # NEW: Dynasty system
-│   │   └── market.rs          # NEW: Market mechanics
+│   │   ├── character.rs       # Character lifecycle ✅
+│   │   ├── dynasty.rs         # Dynasty system ✅
+│   │   └── market.rs          # Market mechanics ✅
 │   ├── services/              
-│   │   ├── death_service.rs   # NEW: Death handling
-│   │   └── market_service.rs  # NEW: Regional markets
+│   │   ├── death_service.rs   # Death handling ✅
+│   │   └── market_service.rs  # Regional markets ✅
 │   └── api/
-│       └── websocket.rs       # NEW: Real-time updates
-├── frontend/                   # NEW: React PWA
-├── discord-bot/               # NEW: Discord integration
+│       └── websocket.rs       # Real-time updates ✅
+├── frontend/
+│   └── dynasty-trader/        # React PWA ✅
+│       ├── src/
+│       │   ├── pages/         # Auth, Dashboard, Character, Market
+│       │   ├── services/      # API client services
+│       │   ├── types/         # TypeScript interfaces
+│       │   └── stores/        # Zustand state management
+│       └── package.json       # Dependencies
+├── migrations/
+│   ├── mariadb/              # Legacy Bridge migrations
+│   └── postgres/             # Dynasty Trader migrations ✅
+├── discord-bot/              # Discord integration (planned)
 └── docs/
-    └── game-design/           # Comprehensive game design
-        ├── economy/           # Economy game research
-        ├── roguelike/         # Roguelike research
-        └── synthesis/         # Hybrid design
+    └── game-design/          # Comprehensive game design
 ```
 
 ## API Evolution
@@ -146,47 +150,26 @@ All current Bridge endpoints remain functional during migration:
 - `/api/v2/ghost/*` - Ghost market actions
 - `/ws/market` - WebSocket market stream
 
-## Database Schema Changes
+## Database Schema (PostgreSQL)
 
-### New Tables
-```sql
--- Character system
-CREATE TABLE characters (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    dynasty_id UUID REFERENCES dynasties(id),
-    name VARCHAR(100),
-    age INTEGER,
-    health INTEGER,
-    location_id UUID,
-    died_at TIMESTAMPTZ,
-    death_cause VARCHAR(255)
-);
+### Core Tables
+- **users**: Authentication and user accounts
+- **dynasties**: Player dynasties with reputation and wealth tracking
+- **characters**: Individual characters with full stats (health, stamina, charisma, intelligence, luck)
+- **character_deaths**: Death records affecting markets
 
--- Dynasty system
-CREATE TABLE dynasties (
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    name VARCHAR(100),
-    generation INTEGER,
-    reputation INTEGER,
-    total_wealth DECIMAL(20,2)
-);
+### Market Tables
+- **regions**: 8 trading regions with safety/prosperity levels
+- **items**: Tradeable goods with categories and rarity
+- **market_listings**: Active trades in regional markets
+- **market_prices**: TimescaleDB hypertable for price history
+- **market_events**: Dynamic events affecting prices
 
--- Market time-series data
-CREATE TABLE market_prices (
-    time TIMESTAMPTZ,
-    region_id UUID,
-    item_id UUID,
-    price DECIMAL(10,2),
-    volume INTEGER
-);
-```
-
-### Modified Tables
-- `user_inventory` → Add `character_id` column
-- `clans` → Adapt for dynasty alliances
-- `trades` → Add dynasty reputation effects
+### Seeded Data
+- 8 regions: Capital City, Northern Mines, Eastern Port, etc.
+- Each region has unique tax rates and characteristics
+- Safety levels affect trade route danger
+- Prosperity levels influence market activity
 
 ## Testing Strategy
 
@@ -257,19 +240,22 @@ Follow existing patterns in `src/`
 
 ## Environment Variables
 
+### Backend (.env)
 ```bash
-# Existing (Bridge)
-DATABASE_URL=mysql://user:pass@localhost/bridge
-JWT_SECRET=your-secret
-PORT=3113
+# Required
+DATABASE_URL=postgresql://timescale:timescale@localhost:5433/dynasty_trader
+JWT_SECRET=your-secret-key-here
 
-# New (Dynasty Trader)
-DATABASE_URL=postgresql://user:pass@localhost/dynasty_trader
-TIMESCALE_URL=postgresql://user:pass@localhost/dynasty_trader
-REDIS_URL=redis://localhost:6379
-DISCORD_CLIENT_ID=your-discord-app-id
-DISCORD_CLIENT_SECRET=your-discord-secret
-DISCORD_BOT_TOKEN=your-bot-token
+# Optional
+HOST=127.0.0.1          # Server host (default: 127.0.0.1)
+PORT=3113               # Server port (default: 3113)
+RUST_LOG=debug          # Logging level
+AGING_TASK_INTERVAL_HOURS=1  # Character aging frequency
+```
+
+### Frontend (.env)
+```bash
+VITE_API_URL=http://localhost:3113  # Backend API URL
 ```
 
 This project is transitioning from a multi-game inventory bridge to a groundbreaking roguelike economy game. The existing codebase provides an excellent foundation that we're building upon rather than replacing.

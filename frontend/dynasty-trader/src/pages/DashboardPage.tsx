@@ -260,12 +260,12 @@ export default function DashboardPage() {
                   <div>
                     <h4 className="font-medium text-white">{character.name}</h4>
                     <p className="text-sm text-slate-400">
-                      Age {character.age} • Health: {character.health}/{character.max_health}
+                      Gen {character.generation} • Health: {character.health}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-slate-400">Wealth</p>
-                    <p className="font-medium text-white">{parseFloat(character.wealth).toLocaleString()}</p>
+                    <p className="font-medium text-white">{character.wealth ? parseFloat(character.wealth).toLocaleString() : '0'}</p>
                   </div>
                 </div>
               ))}

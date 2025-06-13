@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Phase 4: Frontend Development (2025-01-13)
+
+#### Added
+- React PWA with TypeScript and Vite
+  - Modern build tooling with hot module replacement
+  - Progressive Web App capabilities for offline support
+  - Responsive design with Tailwind CSS dark theme
+- Authentication system
+  - JWT-based login/register with persistent sessions
+  - Protected routes with automatic redirects
+  - Token refresh on app startup
+  - Logout functionality with state cleanup
+- Dynasty management UI
+  - Create dynasty with name and motto
+  - View dynasty statistics (wealth, reputation, generation)
+  - Character count tracking (living vs deceased)
+  - Dynasty overview dashboard
+- Character system frontend
+  - Create characters within dynasties
+  - Character dashboard with stats display
+  - Health, stamina, and other attributes visualization
+  - Age calculation from birth_date
+  - Wealth display with proper formatting
+- Market trading interface
+  - Browse 8 seeded regions with safety/prosperity levels
+  - View market listings by region
+  - Filter by category and price range
+  - Market statistics display
+  - Purchase functionality (pending backend integration)
+- State management
+  - Zustand for auth state with persistence
+  - TanStack Query for server state and caching
+  - Optimistic updates for better UX
+- TypeScript interfaces
+  - Complete type safety for all API responses
+  - Aligned with backend Rust models
+  - Proper handling of Decimal types as strings
+
+#### Fixed
+- Character wealth NaN display issue
+- Empty regions table preventing market access
+- TypeScript interface mismatches with backend
+- Frontend expecting different field names than backend provides
+
+#### Technical Improvements
+- Modular service architecture for API calls
+- Comprehensive error handling with toast notifications
+- Lazy loading for better performance
+- Custom hooks for common patterns
+- Environment-based configuration
+
 ### Phase 3: Market Systems Complete (2025-01-13)
 
 #### Added
@@ -157,6 +208,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API documentation generation
 - Integration tests
 
-## [0.1.0] - TBD
+## Frontend Roadmap
 
-- Initial release pending full endpoint implementation
+### Immediate Next Steps
+- [ ] WebSocket integration for real-time market updates
+- [ ] Character death notifications and UI updates
+- [ ] Market price charts with historical data
+- [ ] Mobile-optimized responsive design
+- [ ] PWA manifest and service worker
+- [ ] Offline capability with sync
+
+### Future Enhancements
+- [ ] Character inventory management
+- [ ] Trade route visualization
+- [ ] Dynasty alliance system
+- [ ] Achievement/perk display
+- [ ] Market event notifications
+- [ ] Ghost character interactions

@@ -1,17 +1,24 @@
 # Dynasty Trader (formerly Bridge)
 
-A revolutionary roguelike economy game where death drives markets and players build multi-generational trading empires. 
+A revolutionary roguelike economy game where death drives markets and players build multi-generational trading empires.
 
-**🎮 Core Systems Complete!** - Backend implementation for Dynasty Trader is finished (Phase 1-3). Frontend development begins next.
+**🚀 Frontend Development Active!** - React PWA is live with dynasty management, character creation, and market trading. Backend migration to PostgreSQL/TimescaleDB complete.
 
-## Current Features (Bridge)
+## Current Status
 
-- **User Management**: Email/password authentication
-- **Inventory System**: Items with rarity, modifiers, and credit values
-- **Trading System**: Direct player-to-player item exchanges
-- **Social Graph**: Friends, clans, and clan federations
-- **Marketplace**: Auction house for open trades
-- **Messaging**: Direct messaging between users
+### Frontend (React PWA) - Live!
+- **Authentication**: JWT-based login/register with persistent sessions
+- **Dynasty Management**: Create and manage your trading empire
+- **Character System**: Create characters, view stats, track wealth
+- **Market Interface**: Browse regional markets, view listings, make purchases
+- **Responsive Design**: Works on desktop and mobile devices
+- **Modern UI**: Tailwind CSS with dark theme
+
+### Backend Migration Complete
+- **Database**: Migrated from MariaDB to PostgreSQL + TimescaleDB
+- **API**: Dual API (v1 for legacy, v2 for Dynasty Trader)
+- **Real-time**: WebSocket support for live market updates
+- **Production Ready**: All core systems implemented and tested
 
 ## Implemented Features (Dynasty Trader)
 
@@ -44,49 +51,53 @@ A revolutionary roguelike economy game where death drives markets and players bu
 ### Prerequisites
 
 - Rust 1.70 or higher
-- PostgreSQL 15+ with TimescaleDB extension (for Dynasty Trader)
-- MariaDB/MySQL 5.7+ (for legacy Bridge mode)
+- PostgreSQL 15+ with TimescaleDB extension
+- Node.js 18+ and npm (for frontend)
 - Docker (optional, for database)
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/bridge.git
-cd bridge
+git clone https://github.com/yourusername/dynasty-trader.git
+cd dynasty-trader
 ```
 
-2. Set up the database:
+2. Set up PostgreSQL with TimescaleDB:
 ```bash
 # Using Docker (recommended)
-docker run -d --name bridge-db -p 3306:3306 \
-  -e MYSQL_ROOT_PASSWORD=example \
-  -e MYSQL_DATABASE=bridge \
-  mariadb:latest
-
-# Or use your existing MariaDB/MySQL installation
+docker run -d --name timescaledb -p 5433:5432 \
+  -e POSTGRES_USER=timescale \
+  -e POSTGRES_PASSWORD=timescale \
+  -e POSTGRES_DB=dynasty_trader \
+  timescale/timescaledb:latest-pg15
 ```
 
 3. Configure environment:
 ```bash
-cp .env.example .env
-# Edit .env with your database credentials
-# Default configuration uses root:example@localhost:3306/bridge
+cp .env.dynasty .env
+# Edit .env with your database credentials if needed
 ```
 
 4. Run database migrations:
 ```bash
-cargo run --bin migrate
+cargo run --bin migrate_postgres
 ```
 
-5. Start the server:
+5. Start the backend:
 ```bash
-cargo run --bin bridge
-# Or use the convenience script:
-./scripts/run.sh
+cargo run --bin dynasty-trader
+```
+
+6. Start the frontend:
+```bash
+cd frontend/dynasty-trader
+npm install
+npm run dev
 ```
 
 The API will be available at `http://localhost:3113`
+The frontend will be available at `http://localhost:5173`
 
 ## Game Design Documentation
 
@@ -141,14 +152,22 @@ src/
 
 ## Environment Variables
 
+### Backend (.env)
 ```bash
 # Required
-DATABASE_URL=mysql://root:example@localhost:3306/bridge
+DATABASE_URL=postgresql://timescale:timescale@localhost:5433/dynasty_trader
+JWT_SECRET=your-secret-key-here
 
 # Optional
 HOST=127.0.0.1          # Server host (default: 127.0.0.1)
-PORT=3113               # Server port (default: 3000)
+PORT=3113               # Server port (default: 3113)
 RUST_LOG=debug          # Logging level
+AGING_TASK_INTERVAL_HOURS=1  # Character aging frequency
+```
+
+### Frontend (.env)
+```bash
+VITE_API_URL=http://localhost:3113  # Backend API URL
 ```
 
 ## Logging
@@ -166,14 +185,15 @@ RUST_LOG=bridge=debug,tower_http=info,sqlx=warn cargo run --bin bridge  # Custom
 
 ## Database Schema
 
-The project uses 19 tables to manage all features:
-- User management: `users`, `user_sessions`, `user_games`
-- Inventory: `inventory_items`, `user_inventory`, `item_modifiers`, etc.
-- Social: `clans`, `clan_members`, `user_connections`
-- Trading: `trades`, `trade_items`
-- Marketplace: `marketplace_listings`, `auction_bids`
-- Messaging: `messages`
-- Configuration: `app_secrets`
+### Dynasty Trader Tables (PostgreSQL)
+- **Core**: `users`, `dynasties`, `characters`
+- **Market**: `regions`, `items`, `market_listings`, `market_prices` (TimescaleDB)
+- **Economy**: `character_inventory`, `market_transactions`, `trade_routes`
+- **Events**: `character_deaths`, `market_events`, `dynasty_events`
+- **Social**: `dynasty_alliances`, `character_relationships`
+
+### Legacy Bridge Tables (MariaDB - being phased out)
+- User management, inventory, clans, trading, marketplace, messaging
 
 ## Contributing
 

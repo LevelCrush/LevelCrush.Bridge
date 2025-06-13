@@ -161,7 +161,7 @@ export default function MarketPage() {
                           {region.name}
                         </p>
                         <p className="text-sm text-slate-400">
-                          Pop: {region.population.toLocaleString()} • Wealth: {region.wealth_level}/10
+                          Safety: {region.safety_level}% • Prosperity: {region.prosperity_level}%
                         </p>
                       </div>
                       <MapPinIcon className="h-5 w-5 text-slate-400" />
