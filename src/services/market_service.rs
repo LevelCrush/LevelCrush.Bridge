@@ -3,9 +3,9 @@ use crate::models::{
     CreateMarketListingRequest, PurchaseRequest, MarketEventType
 };
 use crate::utils::AppError;
-use chrono::{Duration, Utc};
+use chrono::{DateTime, Duration, Utc};
 use rust_decimal::Decimal;
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 pub struct MarketService;
@@ -230,30 +230,92 @@ impl MarketService {
         pool: &PgPool,
         region_id: Uuid,
         item_id: Option<Uuid>,
-    ) -> Result<Vec<MarketListing>, AppError> {
-        let mut query = String::from(
-            "SELECT * FROM market_listings 
-             WHERE region_id = $1 AND is_active = true"
-        );
+    ) -> Result<Vec<serde_json::Value>, AppError> {
+        let base_query = r#"
+            SELECT 
+                ml.id,
+                ml.region_id,
+                ml.item_id,
+                ml.seller_character_id,
+                ml.price,
+                ml.quantity,
+                ml.original_quantity,
+                ml.listed_at,
+                ml.expires_at,
+                ml.is_active,
+                ml.is_ghost_listing,
+                ml.ghost_price_modifier,
+                i.name as item_name,
+                i.description as item_description,
+                i.category as item_category,
+                i.rarity::text as item_rarity,
+                i.base_price as item_base_price,
+                i.weight as item_weight
+            FROM market_listings ml
+            JOIN items i ON ml.item_id = i.id
+            WHERE ml.region_id = $1 AND ml.is_active = true
+        "#;
 
-        if item_id.is_some() {
-            query.push_str(" AND item_id = $2");
-        }
+        let query = if item_id.is_some() {
+            format!("{} AND ml.item_id = $2 ORDER BY ml.price ASC, ml.listed_at DESC", base_query)
+        } else {
+            format!("{} ORDER BY ml.price ASC, ml.listed_at DESC", base_query)
+        };
 
-        query.push_str(" ORDER BY price ASC, listed_at DESC");
-
-        let listings = if let Some(item_id) = item_id {
-            sqlx::query_as::<_, MarketListing>(&query)
+        let rows = if let Some(item_id) = item_id {
+            sqlx::query(&query)
                 .bind(region_id)
                 .bind(item_id)
                 .fetch_all(pool)
                 .await?
         } else {
-            sqlx::query_as::<_, MarketListing>(&query)
+            sqlx::query(&query)
                 .bind(region_id)
                 .fetch_all(pool)
                 .await?
         };
+
+        let listings: Vec<serde_json::Value> = rows.into_iter().map(|row| {
+            let id: Uuid = row.get("id");
+            let region_id: Uuid = row.get("region_id");
+            let item_id: Uuid = row.get("item_id");
+            let seller_character_id: Option<Uuid> = row.get("seller_character_id");
+            let price: Decimal = row.get("price");
+            let quantity: i32 = row.get("quantity");
+            let original_quantity: i32 = row.get("original_quantity");
+            let listed_at: DateTime<Utc> = row.get("listed_at");
+            let expires_at: Option<DateTime<Utc>> = row.get("expires_at");
+            let is_active: bool = row.get("is_active");
+            let is_ghost_listing: bool = row.get("is_ghost_listing");
+            let ghost_price_modifier: Decimal = row.get("ghost_price_modifier");
+            let item_name: String = row.get("item_name");
+            let item_description: Option<String> = row.get("item_description");
+            let item_category: String = row.get("item_category");
+            let item_rarity: String = row.get("item_rarity");
+            let item_base_price: Decimal = row.get("item_base_price");
+            let item_weight: i32 = row.get("item_weight");
+
+            serde_json::json!({
+                "id": id,
+                "region_id": region_id,
+                "item_id": item_id,
+                "seller_character_id": seller_character_id,
+                "price": price,
+                "quantity": quantity,
+                "original_quantity": original_quantity,
+                "listed_at": listed_at,
+                "expires_at": expires_at,
+                "is_active": is_active,
+                "is_ghost_listing": is_ghost_listing,
+                "ghost_price_modifier": ghost_price_modifier,
+                "item_name": item_name,
+                "item_description": item_description,
+                "item_category": item_category,
+                "item_rarity": item_rarity,
+                "item_base_price": item_base_price,
+                "item_weight": item_weight
+            })
+        }).collect();
 
         Ok(listings)
     }

@@ -96,7 +96,7 @@ export default function DashboardPage() {
             <div className="mt-6">
               <button
                 onClick={() => setShowDynastyModal(true)}
-                className="btn-primary"
+                className="btn-primary flex items-center"
               >
                 <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
                 Create Dynasty
@@ -233,7 +233,7 @@ export default function DashboardPage() {
             <h2 className="text-xl font-medium text-white">Active Characters</h2>
             <button
               onClick={() => setShowCharacterModal(true)}
-              className="btn-primary"
+              className="btn-primary flex items-center"
             >
               <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
               Create Character

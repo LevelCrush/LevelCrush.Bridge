@@ -22,7 +22,7 @@ pub struct ListingQuery {
 pub async fn create_listing(
     State(pool): State<Arc<PgPool>>,
     Extension(claims): Extension<Claims>,
-    Json(mut request): Json<CreateMarketListingRequest>,
+    Json(request): Json<CreateMarketListingRequest>,
 ) -> Result<Json<Value>, AppError> {
     let user_id = Uuid::parse_str(&claims.sub)?;
     

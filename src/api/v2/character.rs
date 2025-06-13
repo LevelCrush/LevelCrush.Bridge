@@ -196,6 +196,7 @@ pub async fn get_character_inventory(
             ci.acquired_price,
             ci.acquired_at,
             i.name as item_name,
+            i.description as item_description,
             i.category,
             i.rarity as "rarity: String"
         FROM character_inventory ci
@@ -217,6 +218,10 @@ pub async fn get_character_inventory(
         json!({
             "id": format!("{}-{}", item.character_id, item.item_id),
             "item_id": item.item_id,
+            "item_name": item.item_name,
+            "item_description": item.item_description,
+            "category": item.category,
+            "rarity": item.rarity,
             "quantity": item.quantity,
             "acquired_price": item.acquired_price,
             "acquired_at": item.acquired_at

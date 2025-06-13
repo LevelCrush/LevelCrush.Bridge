@@ -9,6 +9,10 @@ import toast from 'react-hot-toast';
 interface SellItemModalProps {
   item: {
     item_id: string;
+    item_name?: string;
+    item_description?: string;
+    category?: string;
+    rarity?: string;
     quantity: number;
     acquired_price: string;
   };
@@ -22,7 +26,12 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
   const [quantity, setQuantity] = useState<number>(1);
   const queryClient = useQueryClient();
 
-  const itemInfo = getItemInfo(item.item_id);
+  const itemInfo = item.item_name ? {
+    name: item.item_name,
+    description: item.item_description || 'A valuable trade good',
+    category: item.category || 'material',
+    rarity: item.rarity || 'common'
+  } : getItemInfo(item.item_id);
   const acquiredPrice = parseFloat(item.acquired_price);
 
   // Fetch regions

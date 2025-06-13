@@ -54,6 +54,10 @@ export interface CharacterInventory {
 export interface InventoryItem {
   id: string;
   item_id: string;
+  item_name?: string;
+  item_description?: string;
+  category?: string;
+  rarity?: string;
   quantity: number;
   acquired_price: string; // Decimal as string
   acquired_at: string;

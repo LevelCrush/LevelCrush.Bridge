@@ -255,7 +255,7 @@ impl CharacterService {
         // TODO: Add market prices, property, etc.
         let wealth: (rust_decimal::Decimal,) = sqlx::query_as(
             r#"
-            SELECT COALESCE(SUM(quantity), 0) as total_wealth
+            SELECT COALESCE(SUM(CAST(quantity AS DECIMAL) * COALESCE(acquired_price, 0)), 0) as total_wealth
             FROM character_inventory
             WHERE character_id = $1
             "#

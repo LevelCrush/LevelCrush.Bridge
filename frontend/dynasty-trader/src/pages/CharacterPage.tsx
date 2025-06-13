@@ -188,7 +188,7 @@ export default function CharacterPage() {
                   {selectedCharacter.is_alive && (
                     <button
                       onClick={() => navigate('/market')}
-                      className="btn-primary"
+                      className="btn-primary flex items-center"
                     >
                       <CurrencyDollarIcon className="-ml-1 mr-2 h-5 w-5" />
                       Trade

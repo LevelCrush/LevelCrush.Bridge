@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { characterService } from '@/services/character';
-import { Character, CharacterInventory as InventoryType } from '@/types';
+import { Character, CharacterInventory as InventoryType, ItemCategory, ItemRarity } from '@/types';
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import SellItemModal from '@/components/SellItemModal';
@@ -83,19 +83,43 @@ export default function CharacterInventory({ character }: CharacterInventoryProp
       used_capacity: 9,
     };
 
-    return <CharacterInventoryDisplay inventory={mockInventory} selectedItem={selectedItem} setSelectedItem={setSelectedItem} />;
+    return <CharacterInventoryDisplay 
+      inventory={mockInventory} 
+      selectedItem={selectedItem} 
+      setSelectedItem={setSelectedItem}
+      sellingItem={sellingItem}
+      setSellingItem={setSellingItem}
+      characterId={character.id}
+    />;
   }
 
-  return <CharacterInventoryDisplay inventory={inventory} selectedItem={selectedItem} setSelectedItem={setSelectedItem} />;
+  return <CharacterInventoryDisplay 
+    inventory={inventory} 
+    selectedItem={selectedItem} 
+    setSelectedItem={setSelectedItem}
+    sellingItem={sellingItem}
+    setSellingItem={setSellingItem}
+    characterId={character.id}
+  />;
 }
 
 interface CharacterInventoryDisplayProps {
   inventory: InventoryType;
   selectedItem: string | null;
   setSelectedItem: (item: string | null) => void;
+  sellingItem: any | null;
+  setSellingItem: (item: any | null) => void;
+  characterId: string;
 }
 
-function CharacterInventoryDisplay({ inventory, selectedItem, setSelectedItem }: CharacterInventoryDisplayProps) {
+function CharacterInventoryDisplay({ 
+  inventory, 
+  selectedItem, 
+  setSelectedItem,
+  sellingItem,
+  setSellingItem,
+  characterId
+}: CharacterInventoryDisplayProps) {
   const capacityPercentage = (inventory.used_capacity / inventory.capacity) * 100;
   const getCapacityColor = () => {
     if (capacityPercentage >= 90) return 'text-red-400 bg-red-900';
@@ -160,7 +184,12 @@ function CharacterInventoryDisplay({ inventory, selectedItem, setSelectedItem }:
       ) : (
         <div className="space-y-3">
           {inventory.items.map((inventoryItem) => {
-            const itemInfo = getItemInfo(inventoryItem.item_id);
+            const itemInfo = inventoryItem.item_name ? {
+              name: inventoryItem.item_name,
+              description: inventoryItem.item_description || 'A valuable trade good',
+              category: inventoryItem.category || ItemCategory.Material,
+              rarity: inventoryItem.rarity || ItemRarity.Common
+            } : getItemInfo(inventoryItem.item_id);
             const unitPrice = parseFloat(inventoryItem.acquired_price);
             const totalValue = unitPrice * inventoryItem.quantity;
             const isSelected = selectedItem === inventoryItem.id;
@@ -223,7 +252,10 @@ function CharacterInventoryDisplay({ inventory, selectedItem, setSelectedItem }:
                     </div>
                     <div className="mt-4 flex space-x-2">
                       <button 
-                        onClick={() => setSellingItem(inventoryItem)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSellingItem(inventoryItem);
+                        }}
                         className="btn-primary text-sm flex-1"
                       >
                         Sell on Market
@@ -244,7 +276,7 @@ function CharacterInventoryDisplay({ inventory, selectedItem, setSelectedItem }:
       {sellingItem && (
         <SellItemModal
           item={sellingItem}
-          characterId={character.id}
+          characterId={characterId}
           onClose={() => setSellingItem(null)}
         />
       )}

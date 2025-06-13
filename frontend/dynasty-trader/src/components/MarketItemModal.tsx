@@ -55,7 +55,12 @@ export default function MarketItemModal({
   if (!listing) return null;
 
   const totalPrice = parseFloat(listing.price) * quantity;
-  const itemInfo = getItemInfo(listing.item_id);
+  const itemInfo = listing.item_name ? {
+    name: listing.item_name,
+    description: listing.item_description || 'A valuable trade good',
+    category: listing.item_category || 'material',
+    rarity: listing.item_rarity || 'common'
+  } : getItemInfo(listing.item_id);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center sm:p-4 z-50">

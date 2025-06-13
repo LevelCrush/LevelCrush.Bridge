@@ -356,7 +356,12 @@ export default function MarketPage() {
                   ) : (
                     <div className="space-y-3">
                       {listings.map((listing) => {
-                        const itemInfo = getItemInfo(listing.item_id);
+                        const itemInfo = listing.item_name ? {
+                          name: listing.item_name,
+                          description: listing.item_description || 'A valuable trade good',
+                          category: listing.item_category || 'material',
+                          rarity: listing.item_rarity || 'common'
+                        } : getItemInfo(listing.item_id);
                         return (
                           <div
                             key={listing.id}

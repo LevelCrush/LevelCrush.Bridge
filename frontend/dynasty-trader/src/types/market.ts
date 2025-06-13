@@ -55,6 +55,13 @@ export interface MarketListing {
   is_active: boolean;
   is_ghost_listing: boolean;
   ghost_price_modifier: string; // Decimal as string
+  // Item details from backend
+  item_name?: string;
+  item_description?: string;
+  item_category?: string;
+  item_rarity?: string;
+  item_base_price?: string;
+  item_weight?: number;
 }
 
 export interface MarketPrice {
