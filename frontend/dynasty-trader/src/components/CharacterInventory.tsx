@@ -4,6 +4,7 @@ import { characterService } from '@/services/character';
 import { Character, CharacterInventory as InventoryType } from '@/types';
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import SellItemModal from '@/components/SellItemModal';
 import { 
   CurrencyDollarIcon,
   ClockIcon,
@@ -17,6 +18,7 @@ interface CharacterInventoryProps {
 
 export default function CharacterInventory({ character }: CharacterInventoryProps) {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [sellingItem, setSellingItem] = useState<any | null>(null);
 
   // Fetch inventory data
   const { data: inventory, isLoading, error } = useQuery({
@@ -220,7 +222,10 @@ function CharacterInventoryDisplay({ inventory, selectedItem, setSelectedItem }:
                       </div>
                     </div>
                     <div className="mt-4 flex space-x-2">
-                      <button className="btn-primary text-sm flex-1">
+                      <button 
+                        onClick={() => setSellingItem(inventoryItem)}
+                        className="btn-primary text-sm flex-1"
+                      >
                         Sell on Market
                       </button>
                       <button className="btn-secondary text-sm">
@@ -233,6 +238,15 @@ function CharacterInventoryDisplay({ inventory, selectedItem, setSelectedItem }:
             );
           })}
         </div>
+      )}
+      
+      {/* Sell Item Modal */}
+      {sellingItem && (
+        <SellItemModal
+          item={sellingItem}
+          characterId={character.id}
+          onClose={() => setSellingItem(null)}
+        />
       )}
     </div>
   );

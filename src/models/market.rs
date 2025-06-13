@@ -112,6 +112,7 @@ pub enum MarketEventType {
 /// Request to create a market listing
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateMarketListingRequest {
+    pub character_id: Option<Uuid>,
     pub region_id: Uuid,
     pub item_id: Uuid,
     pub price: Decimal,

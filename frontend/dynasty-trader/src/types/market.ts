@@ -68,6 +68,7 @@ export interface MarketPrice {
 }
 
 export interface CreateMarketListingRequest {
+  character_id?: string;
   region_id: string;
   item_id: string;
   price: string; // Decimal as string

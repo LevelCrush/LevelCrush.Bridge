@@ -22,24 +22,48 @@ pub struct ListingQuery {
 pub async fn create_listing(
     State(pool): State<Arc<PgPool>>,
     Extension(claims): Extension<Claims>,
-    Json(request): Json<CreateMarketListingRequest>,
+    Json(mut request): Json<CreateMarketListingRequest>,
 ) -> Result<Json<Value>, AppError> {
     let user_id = Uuid::parse_str(&claims.sub)?;
     
-    // Get user's active character
-    let character_id: Uuid = sqlx::query_scalar(
-        r#"
-        SELECT c.id FROM characters c
-        JOIN dynasties d ON c.dynasty_id = d.id
-        WHERE d.user_id = $1 AND c.is_alive = true
-        ORDER BY c.created_at DESC
-        LIMIT 1
-        "#
-    )
-    .bind(user_id)
-    .fetch_one(&*pool)
-    .await
-    .map_err(|_| AppError::NotFound("No active character found".to_string()))?;
+    // If character_id is provided, verify it belongs to the user
+    let character_id = if let Some(char_id) = request.character_id {
+        // Verify character belongs to user's dynasty
+        let owns_character: bool = sqlx::query_scalar(
+            r#"
+            SELECT EXISTS(
+                SELECT 1 FROM characters c
+                JOIN dynasties d ON c.dynasty_id = d.id
+                WHERE c.id = $1 AND d.user_id = $2 AND c.is_alive = true
+            )
+            "#
+        )
+        .bind(char_id)
+        .bind(user_id)
+        .fetch_one(&*pool)
+        .await?;
+        
+        if !owns_character {
+            return Err(AppError::Forbidden);
+        }
+        
+        char_id
+    } else {
+        // Get user's active character
+        sqlx::query_scalar(
+            r#"
+            SELECT c.id FROM characters c
+            JOIN dynasties d ON c.dynasty_id = d.id
+            WHERE d.user_id = $1 AND c.is_alive = true
+            ORDER BY c.created_at DESC
+            LIMIT 1
+            "#
+        )
+        .bind(user_id)
+        .fetch_one(&*pool)
+        .await
+        .map_err(|_| AppError::NotFound("No active character found".to_string()))?
+    };
 
     let listing = MarketService::create_listing(&pool, character_id, request).await?;
 

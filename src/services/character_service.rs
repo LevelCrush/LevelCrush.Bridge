@@ -39,6 +39,9 @@ impl CharacterService {
             )
         };
 
+        // Start character at age 18 instead of 0
+        let birth_date = Utc::now() - chrono::Duration::days(365 * 18);
+        
         let character = sqlx::query_as::<_, Character>(
             r#"
             INSERT INTO characters (
@@ -51,7 +54,7 @@ impl CharacterService {
         )
         .bind(dynasty_id)
         .bind(&request.name)
-        .bind(Utc::now())
+        .bind(birth_date)
         .bind(health)
         .bind(stamina)
         .bind(charisma)
@@ -62,6 +65,9 @@ impl CharacterService {
         .bind(rust_decimal::Decimal::from(0))
         .fetch_one(pool)
         .await?;
+
+        // Add random starting inventory items
+        Self::add_starting_inventory(pool, character.id).await?;
 
         Ok(character)
     }
@@ -320,6 +326,69 @@ impl CharacterService {
             }
         }
 
+        Ok(())
+    }
+
+    /// Add random starting inventory items for a new character
+    async fn add_starting_inventory(pool: &PgPool, character_id: Uuid) -> Result<(), AppError> {
+        use rand::Rng;
+        
+        // Define basic starting items with their probabilities
+        let starting_items = vec![
+            // (item_id, min_qty, max_qty, probability)
+            ("a1b2c3d4-e5f6-7890-abcd-ef1234567890", 5, 15, 1.0),  // Wheat (always)
+            ("b2c3d4e5-f678-90ab-cdef-123456789012", 2, 8, 0.8),   // Salt (80% chance)
+            ("4bcdef12-3456-7890-abcd-ef123456789a", 1, 5, 0.6),   // Wool (60% chance)
+            ("e6789abf-890a-bcde-f123-456789abcde4", 1, 2, 0.5),   // Tools (50% chance)
+            ("d4e5f678-90ab-cdef-1234-567890123456", 1, 3, 0.3),   // Wine (30% chance)
+            ("c456789f-890a-bcde-f123-456789abcde2", 1, 2, 0.2),   // Books (20% chance)
+        ];
+        
+        // Generate all random values before any await
+        let items_to_add: Vec<(Uuid, i32, f64)> = {
+            let mut rng = rand::thread_rng();
+            starting_items.iter()
+                .filter_map(|(item_id_str, min_qty, max_qty, probability)| {
+                    if rng.gen::<f64>() <= *probability {
+                        let quantity = rng.gen_range(*min_qty..=*max_qty);
+                        let price_modifier = 0.8 + rng.gen::<f64>() * 0.4;
+                        Uuid::parse_str(item_id_str).ok().map(|id| (id, quantity, price_modifier))
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        };
+        
+        for (item_id, quantity, price_modifier) in items_to_add {
+            // Get base price for the item
+            let base_price: rust_decimal::Decimal = sqlx::query_scalar(
+                "SELECT base_price FROM items WHERE id = $1"
+            )
+            .bind(item_id)
+            .fetch_one(pool)
+            .await?;
+            
+            let modifier = rust_decimal::Decimal::from_f64_retain(price_modifier)
+                .unwrap_or(rust_decimal::Decimal::from(1));
+            let acquired_price = base_price * modifier;
+            
+            // Insert into character inventory
+            sqlx::query(
+                r#"
+                INSERT INTO character_inventory (character_id, item_id, quantity, acquired_price)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (character_id, item_id) DO NOTHING
+                "#
+            )
+            .bind(character_id)
+            .bind(item_id)
+            .bind(quantity as i32)
+            .bind(acquired_price)
+            .execute(pool)
+            .await?;
+        }
+        
         Ok(())
     }
 }
