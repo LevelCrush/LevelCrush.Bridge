@@ -79,7 +79,7 @@ impl MarketPriceSnapshotTask {
 
     async fn aggregate_market_prices(&self) -> Result<usize, sqlx::Error> {
         // Aggregate current market prices by region and item
-        let prices: Vec<(uuid::Uuid, uuid::Uuid, rust_decimal::Decimal, rust_decimal::Decimal, rust_decimal::Decimal, i32)> = 
+        let prices: Vec<(uuid::Uuid, uuid::Uuid, rust_decimal::Decimal, rust_decimal::Decimal, rust_decimal::Decimal, i64)> = 
             sqlx::query_as(
                 r#"
                 SELECT 

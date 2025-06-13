@@ -184,7 +184,7 @@ impl DeathService {
         }
 
         // Get major holdings for the character
-        let major_holdings: Vec<(Uuid, i32)> = sqlx::query_as(
+        let major_holdings: Vec<(Uuid, i64)> = sqlx::query_as(
             r#"
             SELECT item_id, SUM(quantity) as total_quantity
             FROM character_inventory 

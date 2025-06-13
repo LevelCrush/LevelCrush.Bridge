@@ -5,7 +5,7 @@ use crate::models::{
 use crate::utils::AppError;
 use chrono::{DateTime, Duration, Utc};
 use rust_decimal::Decimal;
-use sqlx::{PgPool, Row, Transaction, Postgres};
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 pub struct MarketService;
