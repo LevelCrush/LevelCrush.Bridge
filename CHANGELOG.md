@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Phase 3: Market Systems Complete (2025-01-13)
+
+#### Added
+- Regional market system with 8 unique regions
+  - Each region has tax rates, safety levels, and prosperity ratings
+  - Trade routes connect regions with distance and danger metrics
+  - Isolated economies prevent global market manipulation
+- Market mechanics with TimescaleDB integration
+  - Real-time price tracking with time-series data
+  - Market listings with expiration dates
+  - Ghost listings from deceased characters
+  - Continuous aggregates for hourly/daily statistics
+- Death service and market impacts
+  - Character deaths create market shocks based on wealth
+  - Ghost markets allow posthumous trading
+  - Item liquidation affects regional supply
+  - 10% death tax on inheritance
+- WebSocket support for real-time updates
+  - Channel-based subscriptions (market:{region_id}, deaths, events)
+  - Live price updates and market events
+  - Death announcements across the game
+  - Efficient broadcast system with Arc<RwLock>
+- Market API endpoints
+  - `/api/v2/market/listings` - Create and browse listings
+  - `/api/v2/market/purchase` - Buy from listings
+  - `/api/v2/market/regions` - Region information
+  - `/api/v2/market/events` - Active market events
+  - `/ws/market` - WebSocket connection
+
+#### Technical Improvements
+- Implemented DynastyTraderState for unified app state
+- Added futures dependency for WebSocket support
+- Created background tasks for market maintenance
+- Safe SQLx migration system with checksums
+- Comprehensive test suite with unit and integration tests
+
+## [0.2.0] - Dynasty Trader Core (2025-01-13)
+
 ### Phase 2: Character Lifecycle (2025-01-06)
 
 #### Added

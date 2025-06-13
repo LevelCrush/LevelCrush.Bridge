@@ -6,20 +6,23 @@ This project is evolving from "Bridge" (a multi-game inventory system) into **Dy
 
 ## Current Status
 
-**Phase**: Core Systems Implementation
+**Phase**: Core Implementation Complete (Phase 1-3) ✅
+**Architecture**: Rust/Axum backend with PostgreSQL + TimescaleDB
+
 **Completed**: 
-- ✅ PostgreSQL + TimescaleDB setup
+- ✅ PostgreSQL + TimescaleDB setup and migrations
 - ✅ Character lifecycle (birth, aging, death)
-- ✅ Dynasty system with inheritance
+- ✅ Dynasty system with inheritance (10% death tax)
+- ✅ Market mechanics with regional economies
+- ✅ Death impact calculations and ghost markets
+- ✅ WebSocket support for real-time updates
+- ✅ Comprehensive test suite
 - ✅ API v2 endpoints for Dynasty Trader
-- ✅ Background tasks for aging and snapshots
 
-**In Progress**:
-- 🔄 Market mechanics with TimescaleDB
-- 🔄 Death impact calculations
-- 🔄 Testing and documentation
-
-**Next Steps**: See [Migration Plan](docs/game-design/synthesis/bridge-migration-plan.md)
+**Next Steps**: 
+- Phase 4: React PWA Frontend (Week 6-8)
+- Phase 5: Discord Bot Integration (Week 9)
+- See [Progress Summary](docs/dynasty-trader-progress-summary.md)
 
 ## Quick Start
 
@@ -30,9 +33,9 @@ cargo run --bin migrate
 cargo run --bin bridge
 
 # Dynasty Trader mode (NEW!)
-cp .env.dynasty.example .env.dynasty  # See .env.dynasty for TimescaleDB config
-cargo run --bin migrate_postgres       # Run PostgreSQL migrations
-cargo run --bin dynasty_trader         # Start Dynasty Trader server
+cp .env.dynasty.example .env.dynasty  # Configure PostgreSQL + TimescaleDB
+./scripts/run_dynasty_migrations.sh   # Run all migrations safely
+cargo run --bin dynasty_trader        # Start Dynasty Trader server on port 3113
 ```
 
 ## Architecture Overview
@@ -82,14 +85,14 @@ cargo run --bin dynasty_trader         # Start Dynasty Trader server
 ### Phase 2: Core Mechanics (Week 2-3) ✅
 - [x] Character lifecycle (birth → death)
 - [x] Inheritance system
-- [x] Death market impacts (partial)
-- [ ] Basic ghost mechanics
+- [x] Death market impacts
+- [x] Basic ghost mechanics
 
-### Phase 3: Market Systems (Week 4-5)
-- [ ] Regional market separation
-- [ ] Price history tracking
-- [ ] WebSocket real-time updates
-- [ ] Market event system
+### Phase 3: Market Systems (Week 4-5) ✅
+- [x] Regional market separation
+- [x] Price history tracking with TimescaleDB
+- [x] WebSocket real-time updates
+- [x] Market event system
 
 ### Phase 4: Frontend (Week 6-8)
 - [ ] React PWA setup

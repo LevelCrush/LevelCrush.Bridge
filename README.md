@@ -1,8 +1,8 @@
 # Dynasty Trader (formerly Bridge)
 
-A revolutionary roguelike economy game where death drives markets and players build multi-generational trading empires. Currently evolving from Bridge (a multi-game inventory system) into a full-fledged game.
+A revolutionary roguelike economy game where death drives markets and players build multi-generational trading empires. 
 
-**🚧 Under Active Development** - Transitioning from Bridge to Dynasty Trader. All existing Bridge functionality remains operational during migration.
+**🎮 Core Systems Complete!** - Backend implementation for Dynasty Trader is finished (Phase 1-3). Frontend development begins next.
 
 ## Current Features (Bridge)
 
@@ -13,7 +13,7 @@ A revolutionary roguelike economy game where death drives markets and players bu
 - **Marketplace**: Auction house for open trades
 - **Messaging**: Direct messaging between users
 
-## Upcoming Features (Dynasty Trader)
+## Implemented Features (Dynasty Trader)
 
 ### Core Game Loop
 - **Generational Gameplay**: Control a dynasty across multiple character lifetimes
@@ -44,7 +44,8 @@ A revolutionary roguelike economy game where death drives markets and players bu
 ### Prerequisites
 
 - Rust 1.70 or higher
-- MariaDB/MySQL 5.7+ or MariaDB 10.3+
+- PostgreSQL 15+ with TimescaleDB extension (for Dynasty Trader)
+- MariaDB/MySQL 5.7+ (for legacy Bridge mode)
 - Docker (optional, for database)
 
 ### Installation
