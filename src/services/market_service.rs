@@ -3,9 +3,11 @@ use crate::models::{
     CreateMarketListingRequest, PurchaseRequest, MarketEventType
 };
 use crate::utils::AppError;
+use crate::api::websocket::{MarketBroadcaster, broadcast_market_update, broadcast_price_update};
 use chrono::{Duration, Utc};
 use rust_decimal::Decimal;
 use sqlx::PgPool;
+use std::sync::Arc;
 use uuid::Uuid;
 
 pub struct MarketService;

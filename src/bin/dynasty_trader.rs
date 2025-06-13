@@ -1,6 +1,6 @@
 use bridge::{
-    api, 
-    app_state::PgAppState, 
+    api::{self, websocket::websocket_handler}, 
+    DynastyTraderState,
     tasks::{AgingTask, WealthSnapshotTask, MarketExpirationTask, MarketPriceSnapshotTask, DeathTask}, 
     utils
 };
@@ -8,6 +8,7 @@ use bridge::{
 use axum::{
     http::{header, Method},
     Router,
+    routing::get,
 };
 use sqlx::postgres::PgPoolOptions;
 use std::{env, net::SocketAddr, sync::Arc};
@@ -41,14 +42,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // TODO: Set up proper SQLx migrations with timestamps
     tracing::info!("Skipping automatic migrations - run migrate_postgres manually");
 
-    // Get JWT secret from environment (for now)
-    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
-
     // Create application state
-    let _app_state = Arc::new(PgAppState {
-        db: db_pool.clone(),
-        jwt_secret,
-    });
+    let app_state = Arc::new(DynastyTraderState::new(db_pool.clone()));
 
     // Start background tasks
     let aging_interval = env::var("AGING_TICK_INTERVAL")
@@ -90,6 +85,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // .nest("/api/v1", api::routes(app_state.clone()))
         // Add v2 routes for Dynasty Trader
         .nest("/api/v2", api::v2::routes(Arc::new(db_pool.clone())))
+        // WebSocket endpoint with state
+        .route("/ws/market", get(websocket_handler).with_state(app_state.clone()))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())

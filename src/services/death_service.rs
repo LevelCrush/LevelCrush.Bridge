@@ -1,9 +1,11 @@
 use crate::models::{Character, Dynasty, MarketEvent, MarketEventType};
 use crate::services::MarketService;
 use crate::utils::AppError;
+use crate::api::websocket::{MarketBroadcaster, broadcast_death_announcement};
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use sqlx::{PgPool, Transaction, Postgres};
+use std::sync::Arc;
 use std::str::FromStr;
 use uuid::Uuid;
 
@@ -73,7 +75,7 @@ impl DeathService {
         .await?;
 
         // Create ghost market listings for valuable items
-        let ghost_count = Self::create_ghost_listings(&mut tx, character_id).await?;
+        let _ghost_count = Self::create_ghost_listings(&mut tx, character_id).await?;
 
         // Record the death event
         let death_event_id = Uuid::new_v4();
@@ -101,7 +103,7 @@ impl DeathService {
         tx.commit().await?;
 
         // Create market events after transaction commits
-        let market_events = Self::create_market_impact_events_after_death(
+        let _market_events = Self::create_market_impact_events_after_death(
             pool,
             &character,
             character_wealth,

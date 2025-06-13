@@ -8,6 +8,7 @@ mod trading;
 mod users;
 
 pub mod v2;
+pub mod websocket;
 
 use axum::{middleware as axum_middleware, Router};
 use std::sync::Arc;
