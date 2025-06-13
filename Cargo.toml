@@ -7,22 +7,6 @@ description = "A Rust-based RESTful API server for unified game user interaction
 license = "MIT"
 
 [[bin]]
-name = "test_db"
-path = "src/bin/test_db.rs"
-
-[[bin]]
-name = "test_logging"
-path = "src/bin/test_logging.rs"
-
-[[bin]]
-name = "dynasty_trader"
-path = "src/bin/dynasty_trader.rs"
-
-[[bin]]
-name = "migrate"
-path = "src/bin/migrate.rs"
-
-[[bin]]
 name = "migrate_postgres"
 path = "src/bin/migrate_postgres.rs"
 
@@ -35,7 +19,7 @@ tower-http = { version = "0.5", features = ["cors", "trace"] }
 futures = "0.3"
 
 # Database
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "mysql", "postgres", "chrono", "uuid", "macros", "time", "migrate", "rust_decimal"], default-features = false }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "macros", "time", "migrate", "rust_decimal"], default-features = false }
 rust_decimal = { version = "1.32", features = ["serde"] }
 
 # Serialization
