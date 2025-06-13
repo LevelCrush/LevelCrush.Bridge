@@ -3,9 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { dynastyService } from '@/services/dynasty';
 import { characterService } from '@/services/character';
+import { marketService } from '@/services/market';
 import { Dynasty, Character } from '@/types';
 import toast from 'react-hot-toast';
-import { PlusIcon, UserGroupIcon, UserIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, UserGroupIcon, UserIcon, CurrencyDollarIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { CharacterCardSkeleton, StatCardSkeleton } from '@/components/LoadingSkeleton';
 
 export default function DashboardPage() {
@@ -27,6 +28,12 @@ export default function DashboardPage() {
     queryKey: ['characters'],
     queryFn: characterService.getDynastyCharacters,
     enabled: !!dynasty,
+  });
+
+  // Fetch regions for location display
+  const { data: regions = [] } = useQuery({
+    queryKey: ['market', 'regions'],
+    queryFn: marketService.getRegions,
   });
 
   // Create dynasty mutation
@@ -264,6 +271,12 @@ export default function DashboardPage() {
                     <p className="text-sm text-slate-400">
                       Gen {character.generation} • Health: {character.health}
                     </p>
+                    {character.location_id && (
+                      <p className="text-xs text-slate-500 flex items-center mt-1">
+                        <MapPinIcon className="h-3 w-3 mr-1" />
+                        {regions.find(r => r.id === character.location_id)?.name || 'Unknown'}
+                      </p>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-slate-400">Wealth</p>

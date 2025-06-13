@@ -43,13 +43,17 @@ impl CharacterService {
         // Start character at age 18 instead of 0
         let birth_date = Utc::now() - chrono::Duration::days(365 * 18);
         
+        // Default to Capital City if no location specified
+        let capital_city_id = Uuid::parse_str("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11").unwrap();
+        let location_id = request.starting_location_id.unwrap_or(capital_city_id);
+        
         let character = sqlx::query_as::<_, Character>(
             r#"
             INSERT INTO characters (
                 dynasty_id, name, birth_date, health, stamina,
                 charisma, intelligence, luck, generation,
-                parent_character_id, inheritance_received
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                parent_character_id, inheritance_received, location_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
             "#
         )
@@ -64,6 +68,7 @@ impl CharacterService {
         .bind(generation)
         .bind(request.parent_character_id)
         .bind(rust_decimal::Decimal::from(starting_gold))
+        .bind(location_id)
         .fetch_one(pool)
         .await?;
 

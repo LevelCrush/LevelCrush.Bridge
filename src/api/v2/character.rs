@@ -44,6 +44,7 @@ pub async fn create_character(
         dynasty_id: req.dynasty_id,
         name: req.name,
         parent_character_id: None,
+        starting_location_id: None, // Default to Capital City in service
     };
 
     let character = CharacterService::create_character(&pool, req.dynasty_id, request).await?;

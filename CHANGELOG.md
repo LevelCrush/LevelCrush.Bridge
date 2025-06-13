@@ -21,6 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed "market_listings_quantity_check" constraint violation when purchasing all items
   - Changed logic to set is_active=false instead of quantity=0 when listing is fully purchased
   - Database constraint requires quantity > 0, so we avoid setting it to 0
+
+#### Added
+- **Character Location System**
+  - Added location display to Character Page showing current region
+  - Added location indicators to Dashboard character list
+  - Characters now start in Capital City by default
+  - Added location_id support to character creation
+  - Created migration to set default location for existing characters
+  - Location shown with map pin icon in character lists
 - **Character Display Issues**
   - Fixed characters not showing for user accounts due to aggressive aging system
   - Characters now start at age 18 instead of 0 to prevent immediate death

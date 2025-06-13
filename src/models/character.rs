@@ -128,6 +128,7 @@ pub struct CreateCharacterRequest {
     pub dynasty_id: Uuid,
     pub name: String,
     pub parent_character_id: Option<Uuid>,
+    pub starting_location_id: Option<Uuid>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

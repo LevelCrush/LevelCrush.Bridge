@@ -10,6 +10,7 @@ A revolutionary roguelike economy game where death drives markets and players bu
 - **Authentication**: JWT-based login/register with persistent sessions
 - **Dynasty Management**: Create and manage your trading empire
 - **Character System**: Create characters, view stats, track wealth
+- **Character Location**: Display current region with map indicators
 - **Character Inventory**: View items, sell to market, track values
 - **Market Interface**: Browse regional markets, view listings, make purchases
 - **Transaction History**: Track all buy/sell transactions with profit/loss

@@ -294,12 +294,18 @@ This project is transitioning from a multi-game inventory bridge to a groundbrea
 - **Character gold not displaying in purchase modal** - Fixed by using inheritance_received instead of wealth field
 - **Purchase database constraint error** - Fixed by setting is_active=false instead of quantity=0 when all items purchased
 - **Item names showing as hashes in purchase modal** - Fixed by using listing data instead of mock lookup
+- **Characters without locations** - Fixed by defaulting new characters to Capital City and migrating existing characters
 
 ### Current Frontend Features
 - JWT authentication with automatic token refresh
 - Dynasty creation and management dashboard
 - Character creation with randomized stats (health, stamina, charisma, intelligence, luck)
+- Characters start with 500-1000 gold and begin in Capital City
+- Character location display with map pin indicators
 - Market browsing with 8 unique regions (Capital City, Northern Mines, etc.)
+- Regional dropdown selection for easier navigation
+- Item inventory management with sell functionality
+- Transaction history with expandable details
 - Real-time WebSocket updates for market changes
 - Interactive price charts using Recharts
 - Loading skeletons for smooth UX

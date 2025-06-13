@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { characterService } from '@/services/character';
+import { marketService } from '@/services/market';
 import { Character, CharacterStats } from '@/types';
 import CharacterInventory from '@/components/CharacterInventory';
 import TransactionHistory from '@/components/TransactionHistory';
@@ -32,6 +33,12 @@ export default function CharacterPage() {
     queryKey: ['character', selectedCharacter?.id, 'stats'],
     queryFn: () => characterService.getCharacterStats(selectedCharacter!.id),
     enabled: !!selectedCharacter,
+  });
+
+  // Fetch regions
+  const { data: regions = [] } = useQuery({
+    queryKey: ['market', 'regions'],
+    queryFn: marketService.getRegions,
   });
 
   // Set initial selected character
@@ -136,6 +143,12 @@ export default function CharacterPage() {
                           <p className="text-sm text-slate-400">
                             Age {calculateAge(character.birth_date)} • Gen {character.generation}
                           </p>
+                          {character.location_id && (
+                            <p className="text-xs text-slate-500 flex items-center mt-1">
+                              <MapPinIcon className="h-3 w-3 mr-1" />
+                              {regions.find(r => r.id === character.location_id)?.name || 'Unknown'}
+                            </p>
+                          )}
                         </div>
                         <HeartIcon className={`h-5 w-5 ${getHealthColor(character.health)}`} />
                       </div>
@@ -297,7 +310,9 @@ export default function CharacterPage() {
                         Location
                       </span>
                       <span className="font-medium text-white">
-                        {characterStats?.location || 'Capital'}
+                        {selectedCharacter.location_id 
+                          ? regions.find(r => r.id === selectedCharacter.location_id)?.name || 'Unknown'
+                          : 'Capital City'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">

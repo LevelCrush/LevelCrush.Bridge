@@ -64,6 +64,7 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
                     dynasty_id: req.dynasty_id,
                     name: req.name,
                     parent_character_id: None,
+                    starting_location_id: None,
                 };
 
                 let character = CharacterService::create_character(&pool, req.dynasty_id, request).await?;
