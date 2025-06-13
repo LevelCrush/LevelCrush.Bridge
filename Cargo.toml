@@ -28,10 +28,11 @@ path = "src/bin/migrate_postgres.rs"
 
 [dependencies]
 # Web framework
-axum = "0.7"
+axum = { version = "0.7", features = ["ws"] }
 tokio = { version = "1", features = ["full"] }
 tower = "0.4"
 tower-http = { version = "0.5", features = ["cors", "trace"] }
+futures = "0.3"
 
 # Database
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "mysql", "postgres", "chrono", "uuid", "macros", "time", "migrate", "rust_decimal"], default-features = false }

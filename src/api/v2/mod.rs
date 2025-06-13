@@ -7,6 +7,8 @@ use std::sync::Arc;
 
 pub mod character;
 pub mod dynasty;
+pub mod market;
+pub mod death;
 
 use crate::api::middleware::auth_pg::auth_middleware_pg;
 
@@ -26,6 +28,20 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
         .route("/characters/:id", get(character::get_character))
         .route("/characters/:id/stats", get(character::get_character_stats))
         .route("/characters/:id/death", post(character::process_character_death))
+        
+        // Market routes
+        .route("/market/listings", post(market::create_listing))
+        .route("/market/purchase", post(market::purchase_listing))
+        .route("/market/regions", get(market::get_regions))
+        .route("/market/regions/:id/listings", get(market::get_region_listings))
+        .route("/market/regions/:id/stats", get(market::get_market_stats))
+        .route("/market/regions/:id/routes", get(market::get_trade_routes))
+        .route("/market/regions/:region_id/items/:item_id/history", get(market::get_price_history))
+        .route("/market/events", get(market::get_market_events))
+        
+        // Death routes
+        .route("/deaths/recent", get(death::get_recent_deaths))
+        .route("/dynasties/:id/deaths", get(death::get_dynasty_death_stats))
         
         .layer(axum::middleware::from_fn_with_state(
             pool.clone(),

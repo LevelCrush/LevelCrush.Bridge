@@ -8,6 +8,7 @@ pub mod user;
 // Dynasty Trader models
 pub mod character;
 pub mod dynasty;
+pub mod market;
 
 pub use clan::*;
 pub use inventory::*;
@@ -19,3 +20,4 @@ pub use user::*;
 // Dynasty Trader exports
 pub use character::*;
 pub use dynasty::*;
+pub use market::*;

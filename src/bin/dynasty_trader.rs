@@ -1,8 +1,14 @@
-use bridge::{api, app_state::PgAppState, tasks::{AgingTask, WealthSnapshotTask}, utils};
+use bridge::{
+    api::{self, websocket::websocket_handler}, 
+    DynastyTraderState,
+    tasks::{AgingTask, WealthSnapshotTask, MarketExpirationTask, MarketPriceSnapshotTask, DeathTask}, 
+    utils
+};
 
 use axum::{
     http::{header, Method},
     Router,
+    routing::get,
 };
 use sqlx::postgres::PgPoolOptions;
 use std::{env, net::SocketAddr, sync::Arc};
@@ -36,14 +42,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // TODO: Set up proper SQLx migrations with timestamps
     tracing::info!("Skipping automatic migrations - run migrate_postgres manually");
 
-    // Get JWT secret from environment (for now)
-    let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
-
     // Create application state
-    let _app_state = Arc::new(PgAppState {
-        db: db_pool.clone(),
-        jwt_secret,
-    });
+    let app_state = Arc::new(DynastyTraderState::new(db_pool.clone()));
 
     // Start background tasks
     let aging_interval = env::var("AGING_TICK_INTERVAL")
@@ -61,6 +61,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let wealth_task = WealthSnapshotTask::new(Arc::new(db_pool.clone()), snapshot_interval);
     tokio::spawn(wealth_task.start());
 
+    // Spawn market tasks
+    let market_expiration_task = MarketExpirationTask::new(Arc::new(db_pool.clone()), 300); // Every 5 minutes
+    tokio::spawn(market_expiration_task.start());
+
+    let market_price_task = MarketPriceSnapshotTask::new(Arc::new(db_pool.clone()), 300); // Every 5 minutes
+    tokio::spawn(market_price_task.start());
+
+    // Spawn death check task
+    let death_task = DeathTask::new(Arc::new(db_pool.clone()), 1800); // Every 30 minutes
+    tokio::spawn(death_task.start());
+
     // Configure CORS
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -74,6 +85,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // .nest("/api/v1", api::routes(app_state.clone()))
         // Add v2 routes for Dynasty Trader
         .nest("/api/v2", api::v2::routes(Arc::new(db_pool.clone())))
+        // WebSocket endpoint with state
+        .route("/ws/market", get(websocket_handler).with_state(app_state.clone()))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
