@@ -17,7 +17,8 @@ import {
   ExclamationTriangleIcon,
   FunnelIcon,
   ArrowTrendingUpIcon,
-  ArrowTrendingDownIcon
+  ArrowTrendingDownIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -29,6 +30,7 @@ export default function MarketPage() {
   const [selectedListing, setSelectedListing] = useState<MarketListing | null>(null);
   const [purchasingListing, setPurchasingListing] = useState<MarketListing | null>(null);
   const [viewingItemDetails, setViewingItemDetails] = useState<MarketListing | null>(null);
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { isConnected, socket, subscribe, unsubscribe } = useWebSocket();
 
@@ -73,7 +75,16 @@ export default function MarketPage() {
   });
 
   const livingCharacters = characters.filter(c => c.is_alive);
-  const activeCharacter = livingCharacters[0]; // TODO: Allow character selection
+  const activeCharacter = selectedCharacterId 
+    ? characters.find(c => c.id === selectedCharacterId) 
+    : livingCharacters[0];
+
+  // Set default selected character
+  useEffect(() => {
+    if (!selectedCharacterId && livingCharacters.length > 0) {
+      setSelectedCharacterId(livingCharacters[0].id);
+    }
+  }, [livingCharacters, selectedCharacterId]);
 
   // Subscribe to market updates for selected region
   useEffect(() => {
@@ -180,11 +191,30 @@ export default function MarketPage() {
               <h1 className="text-2xl sm:text-3xl font-display font-bold text-white">Regional Markets</h1>
               <p className="mt-1 sm:mt-2 text-sm sm:text-base text-slate-300">Trade goods across different regions and build your wealth.</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className="text-sm text-slate-400">
-                {isConnected ? 'Live Updates' : 'Connecting...'}
-              </span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              {/* Character Selector */}
+              {livingCharacters.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <UserIcon className="h-5 w-5 text-slate-400" />
+                  <select
+                    value={selectedCharacterId || ''}
+                    onChange={(e) => setSelectedCharacterId(e.target.value)}
+                    className="input py-1 px-3 text-sm min-w-[150px]"
+                  >
+                    {livingCharacters.map((character) => (
+                      <option key={character.id} value={character.id}>
+                        {character.name} ({parseFloat(character.inheritance_received || '0').toLocaleString()} gold)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="flex items-center space-x-2">
+                <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-sm text-slate-400">
+                  {isConnected ? 'Live Updates' : 'Connecting...'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -336,8 +366,21 @@ export default function MarketPage() {
                         <p className="text-xl sm:text-2xl font-bold text-white">{formatPrice(marketStats.total_volume_24h)}</p>
                       </div>
                       <div className="card">
-                        <p className="text-xs sm:text-sm text-slate-400">Active Character</p>
-                        <p className="text-base sm:text-lg font-medium text-white">{activeCharacter?.name || 'None'}</p>
+                        <p className="text-xs sm:text-sm text-slate-400">Trading As</p>
+                        {activeCharacter ? (
+                          <div>
+                            <p className="text-base sm:text-lg font-medium text-white">{activeCharacter.name}</p>
+                            <p className="text-xs text-dynasty-400">{parseFloat(activeCharacter.inheritance_received || '0').toLocaleString()} gold</p>
+                            {activeCharacter.location_id && (
+                              <p className="text-xs text-slate-500 flex items-center mt-1">
+                                <MapPinIcon className="h-3 w-3 mr-1" />
+                                {regions.find(r => r.id === activeCharacter.location_id)?.name || 'Unknown'}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-base sm:text-lg font-medium text-slate-500">No character selected</p>
+                        )}
                       </div>
                     </>
                   ) : (
