@@ -6,17 +6,22 @@ use validator::Validate;
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct User {
-    pub id: String,
-    pub email: String,
+    pub id: Uuid,
     pub username: String,
+    pub email: String,
     #[serde(skip_serializing)]
     pub password_hash: String,
-    pub avatar_url: Option<String>,
     pub discord_id: Option<String>,
+    pub discord_username: Option<String>,
+    pub discord_avatar: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub last_login: Option<DateTime<Utc>>,
     pub is_active: bool,
+    pub email_verified: bool,
+    pub verification_token: Option<String>,
+    pub reset_token: Option<String>,
+    pub reset_token_expires: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
@@ -112,16 +117,21 @@ impl User {
     pub fn new(email: String, username: String, password_hash: String) -> Self {
         let now = Utc::now();
         Self {
-            id: Uuid::new_v4().to_string(),
+            id: Uuid::new_v4(),
             email,
             username,
             password_hash,
-            avatar_url: None,
             discord_id: None,
+            discord_username: None,
+            discord_avatar: None,
             created_at: now,
             updated_at: now,
             last_login: None,
             is_active: true,
+            email_verified: false,
+            verification_token: None,
+            reset_token: None,
+            reset_token_expires: None,
         }
     }
 }

@@ -75,3 +75,17 @@ pub fn generate_session_token() -> String {
     let bytes: Vec<u8> = (0..32).map(|_| rng.gen()).collect();
     general_purpose::STANDARD.encode(&bytes)
 }
+
+pub fn generate_tokens(user_id: String) -> Result<(String, String, i64)> {
+    let jwt_secret = std::env::var("JWT_SECRET")
+        .map_err(|_| AppError::Internal("JWT_SECRET not set".to_string()))?;
+    
+    // Generate access token (expires in 1 hour)
+    let access_token = generate_jwt(&user_id, &jwt_secret)?;
+    
+    // Generate refresh token
+    let refresh_token = generate_session_token();
+    
+    // Return tokens with expiration time in seconds (1 hour)
+    Ok((access_token, refresh_token, 3600))
+}
