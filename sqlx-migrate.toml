@@ -1,0 +1,2 @@
+[database]
+url = "postgresql://timescale:timescale@localhost:5433/dynasty_trader"
