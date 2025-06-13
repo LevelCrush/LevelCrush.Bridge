@@ -1,4 +1,4 @@
-import { authStore } from '@/stores/authStore';
+import { storage } from '@/lib/storage';
 
 export type WebSocketMessage = 
   | { type: 'market_update'; data: MarketUpdate }
@@ -55,16 +55,16 @@ class WebSocketService {
   private reconnectDelay = 1000; // Start with 1 second
   
   connect(): void {
-    const token = authStore.getState().token;
-    if (!token) {
+    const tokens = storage.getTokens();
+    if (!tokens) {
       console.error('No auth token available for WebSocket connection');
       return;
     }
 
-    const wsUrl = import.meta.env.VITE_API_URL.replace('http', 'ws') + '/ws/market';
+    const wsUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3113').replace('http', 'ws') + '/ws/market';
     
     try {
-      this.ws = new WebSocket(wsUrl, [token]);
+      this.ws = new WebSocket(wsUrl, [tokens.access_token]);
       
       this.ws.onopen = () => {
         console.log('WebSocket connected');

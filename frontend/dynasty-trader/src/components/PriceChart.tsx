@@ -1,7 +1,27 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, ReferenceLine } from 'recharts';
 import { format } from 'date-fns';
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 import LoadingSkeleton from './LoadingSkeleton';
+
+const formatAxisTick = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString('en-US', { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  });
+};
+
+const formatTooltipLabel = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-US', { 
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: false 
+  });
+};
 
 interface PriceData {
   time: string;

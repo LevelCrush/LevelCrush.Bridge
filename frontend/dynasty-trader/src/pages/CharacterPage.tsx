@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { characterService } from '@/services/character';
 import { Character, CharacterStats } from '@/types';
+import CharacterInventory from '@/components/CharacterInventory';
 import { 
   UserIcon, 
   HeartIcon, 
@@ -319,6 +320,9 @@ export default function CharacterPage() {
                 </div>
               </div>
 
+              {/* Character Inventory */}
+              <CharacterInventory character={selectedCharacter} />
+
               {/* Actions */}
               {selectedCharacter.is_alive && (
                 <div className="card">
@@ -337,10 +341,13 @@ export default function CharacterPage() {
                       Travel
                     </button>
                     <button
-                      onClick={() => toast.error('Inventory not yet implemented')}
+                      onClick={() => {
+                        const inventorySection = document.querySelector('[data-inventory-section]');
+                        inventorySection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }}
                       className="btn-secondary text-sm"
                     >
-                      Inventory
+                      View Inventory
                     </button>
                   </div>
                 </div>

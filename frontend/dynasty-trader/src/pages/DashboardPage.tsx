@@ -73,8 +73,8 @@ export default function DashboardPage() {
     }
   };
 
-  const livingCharacters = characters.filter(c => !c.died_at);
-  const deadCharacters = characters.filter(c => c.died_at);
+  const livingCharacters = characters.filter(c => c.is_alive);
+  const deadCharacters = characters.filter(c => !c.is_alive);
 
   if (dynastyLoading) {
     return (

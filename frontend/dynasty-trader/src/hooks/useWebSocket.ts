@@ -1,9 +1,9 @@
 import { useEffect, useCallback, useState } from 'react';
 import { websocketService, WebSocketMessage } from '@/services/websocket';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function useWebSocket() {
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const { isAuthenticated } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   
   useEffect(() => {

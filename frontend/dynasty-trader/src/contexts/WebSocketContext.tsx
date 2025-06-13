@@ -18,7 +18,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const reconnectAttempts = useRef(0);
-  const reconnectTimeout = useRef<NodeJS.Timeout>();
+  const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>();
   const maxReconnectAttempts = 5;
   const subscribedChannels = useRef<Set<string>>(new Set());
   const hasShownError = useRef(false);

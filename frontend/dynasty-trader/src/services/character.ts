@@ -25,4 +25,9 @@ export const characterService = {
   async processCharacterDeath(id: string, deathCause: string): Promise<void> {
     await api.post(`/characters/${id}/death`, { death_cause: deathCause });
   },
+
+  async getCharacterInventory(id: string): Promise<CharacterInventory> {
+    const response = await api.get<{ inventory: CharacterInventory }>(`/characters/${id}/inventory`);
+    return response.inventory;
+  },
 };

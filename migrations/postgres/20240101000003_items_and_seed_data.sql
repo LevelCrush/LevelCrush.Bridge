@@ -75,7 +75,7 @@ INSERT INTO items (id, name, category, base_price, weight, perishable, rarity, d
 ('f789abcf-890a-bcde-f123-456789abcde5', 'Weapons', 'Equipment', 200.00, 50, false, 'uncommon', 'Arms for defense and hunting'),
 ('089abcdf-890a-bcde-f123-456789abcde6', 'Armor', 'Equipment', 300.00, 100, false, 'uncommon', 'Protective gear'),
 ('19abcdef-890a-bcde-f123-456789abcde7', 'Medicine', 'Equipment', 100.00, 5, true, 'uncommon', 'Healing herbs and potions'),
-('2abcdefg-890a-bcde-f123-456789abcde8', 'Magic Items', 'Equipment', 2000.00, 10, false, 'legendary', 'Enchanted artifacts')
+('2abcdef0-890a-bcde-f123-456789abcde8', 'Magic Items', 'Equipment', 2000.00, 10, false, 'legendary', 'Enchanted artifacts')
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert seed regions

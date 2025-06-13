@@ -6,6 +6,8 @@ import { MarketRegion, MarketListing, MarketEvent, ItemCategory } from '@/types'
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { MarketListingSkeleton, StatCardSkeleton } from '@/components/LoadingSkeleton';
 import MarketItemModal from '@/components/MarketItemModal';
+import PurchaseConfirmationModal from '@/components/PurchaseConfirmationModal';
+import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
 import { 
   BuildingStorefrontIcon,
   MapPinIcon,
@@ -24,6 +26,7 @@ export default function MarketPage() {
   const [priceFilter, setPriceFilter] = useState({ min: '', max: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedListing, setSelectedListing] = useState<MarketListing | null>(null);
+  const [purchasingListing, setPurchasingListing] = useState<MarketListing | null>(null);
   const queryClient = useQueryClient();
   const { isConnected, socket, subscribe, unsubscribe } = useWebSocket();
 
@@ -83,8 +86,8 @@ export default function MarketPage() {
         const message = JSON.parse(event.data);
         if (message.channel === channel) {
           // Invalidate queries to refresh data
-          queryClient.invalidateQueries(['market', 'listings', selectedRegion.id]);
-          queryClient.invalidateQueries(['market', 'stats', selectedRegion.id]);
+          queryClient.invalidateQueries({ queryKey: ['market', 'listings', selectedRegion.id] });
+          queryClient.invalidateQueries({ queryKey: ['market', 'stats', selectedRegion.id] });
         }
       } catch (error) {
         console.error('Failed to parse WebSocket message:', error);
@@ -99,18 +102,25 @@ export default function MarketPage() {
     };
   }, [selectedRegion, socket, subscribe, unsubscribe, queryClient]);
 
-  const handlePurchase = async (listing: MarketListing) => {
-    if (!activeCharacter) {
-      toast.error('No active character to make purchases');
-      return;
-    }
+  const handlePurchase = (listing: MarketListing) => {
+    setPurchasingListing(listing);
+  };
+
+  const handleConfirmPurchase = async (_characterId: string, quantity: number) => {
+    if (!purchasingListing) return;
 
     try {
       await marketService.purchaseListing({
-        listing_id: listing.id,
-        quantity: 1, // TODO: Add quantity selector
+        listing_id: purchasingListing.id,
+        quantity,
       });
       toast.success('Purchase successful!');
+      setPurchasingListing(null);
+      setSelectedListing(null);
+      
+      // Refresh listings and character data
+      queryClient.invalidateQueries({ queryKey: ['market', 'listings', selectedRegion?.id] });
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Purchase failed');
     }
@@ -118,6 +128,24 @@ export default function MarketPage() {
 
   const formatPrice = (price: string) => {
     return parseFloat(price).toLocaleString();
+  };
+
+  const getRarityBadgeClasses = (rarity: string) => {
+    const baseClasses = 'text-xs px-2 py-0.5 rounded font-medium';
+    switch (rarity) {
+      case 'common':
+        return `${baseClasses} bg-gray-900 text-gray-300`;
+      case 'uncommon':
+        return `${baseClasses} bg-green-900 text-green-300`;
+      case 'rare':
+        return `${baseClasses} bg-blue-900 text-blue-300`;
+      case 'epic':
+        return `${baseClasses} bg-purple-900 text-purple-300`;
+      case 'legendary':
+        return `${baseClasses} bg-yellow-900 text-yellow-300`;
+      default:
+        return `${baseClasses} bg-gray-900 text-gray-300`;
+    }
   };
 
   const getCategoryColor = (category: ItemCategory) => {
@@ -327,47 +355,69 @@ export default function MarketPage() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {listings.map((listing) => (
-                        <div
-                          key={listing.id}
-                          className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600 transition-colors cursor-pointer"
-                          onClick={() => setSelectedListing(listing)}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center">
-                                <h4 className="font-medium text-white">{listing.item_id}</h4>
-                                {listing.is_ghost_listing && (
-                                  <span className="ml-2 text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded">
-                                    Ghost
+                      {listings.map((listing) => {
+                        const itemInfo = getItemInfo(listing.item_id);
+                        return (
+                          <div
+                            key={listing.id}
+                            className={`bg-slate-700 rounded-lg p-4 transition-all cursor-pointer border ${
+                              itemInfo.rarity === 'legendary' ? 'border-yellow-900/50 hover:border-yellow-800 hover:shadow-lg hover:shadow-yellow-900/20' :
+                              itemInfo.rarity === 'epic' ? 'border-purple-900/50 hover:border-purple-800 hover:shadow-lg hover:shadow-purple-900/20' :
+                              itemInfo.rarity === 'rare' ? 'border-blue-900/50 hover:border-blue-800 hover:shadow-lg hover:shadow-blue-900/20' :
+                              itemInfo.rarity === 'uncommon' ? 'border-green-900/50 hover:border-green-800 hover:shadow-lg hover:shadow-green-900/20' :
+                              'border-slate-600 hover:border-slate-500'
+                            } hover:bg-slate-600`}
+                            onClick={() => setSelectedListing(listing)}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center">
+                                  <span className="text-lg mr-2">{getCategoryIcon(itemInfo.category)}</span>
+                                  <h4 className={`font-medium ${getRarityColor(itemInfo.rarity)}`}>
+                                    {itemInfo.name}
+                                  </h4>
+                                  <span className={`ml-2 ${getRarityBadgeClasses(itemInfo.rarity)}`}>
+                                    {itemInfo.rarity.charAt(0).toUpperCase() + itemInfo.rarity.slice(1)}
                                   </span>
-                                )}
+                                  {listing.is_ghost_listing && (
+                                    <span className="ml-2 text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded">
+                                      Ghost
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-1 flex items-center space-x-4 text-sm text-slate-400">
+                                  <span className={getCategoryColor(itemInfo.category)}>
+                                    {itemInfo.category.charAt(0).toUpperCase() + itemInfo.category.slice(1)}
+                                  </span>
+                                  <span>•</span>
+                                  <span>Qty: {listing.quantity}</span>
+                                  <span>•</span>
+                                  <span>Listed: {new Date(listing.listed_at).toLocaleDateString()}</span>
+                                  {listing.seller_character_id && (
+                                    <>
+                                      <span>•</span>
+                                      <span>Seller: {listing.seller_character_id.slice(0, 8)}...</span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                              <div className="mt-1 flex items-center space-x-4 text-sm text-slate-400">
-                                <span>Qty: {listing.quantity}</span>
-                                <span>•</span>
-                                <span>Listed: {new Date(listing.listed_at).toLocaleDateString()}</span>
-                                {listing.seller_character_id && (
-                                  <>
-                                    <span>•</span>
-                                    <span>Seller: {listing.seller_character_id.slice(0, 8)}...</span>
-                                  </>
-                                )}
+                              <div className="text-right ml-4">
+                                <p className="text-lg font-bold text-white">{formatPrice(listing.price)} gold</p>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePurchase(listing);
+                                  }}
+                                  disabled={!listing.is_active || characters.filter(c => c.is_alive).length === 0}
+                                  className="mt-2 btn-primary text-sm"
+                                >
+                                  Purchase
+                                </button>
                               </div>
-                            </div>
-                            <div className="text-right ml-4">
-                              <p className="text-lg font-bold text-white">{formatPrice(listing.price)} gold</p>
-                              <button
-                                onClick={() => handlePurchase(listing)}
-                                disabled={!activeCharacter || !listing.is_active}
-                                className="mt-2 btn-primary text-sm"
-                              >
-                                Purchase
-                              </button>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -386,6 +436,14 @@ export default function MarketPage() {
           onPurchase={handlePurchase}
         />
       )}
+      
+      {/* Purchase Confirmation Modal */}
+      <PurchaseConfirmationModal
+        listing={purchasingListing}
+        characters={characters}
+        onConfirm={handleConfirmPurchase}
+        onCancel={() => setPurchasingListing(null)}
+      />
     </div>
   );
 }
