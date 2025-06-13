@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { characterService } from '@/services/character';
 import { Character, CharacterStats } from '@/types';
 import CharacterInventory from '@/components/CharacterInventory';
+import TransactionHistory from '@/components/TransactionHistory';
 import { 
   UserIcon, 
   HeartIcon, 
@@ -322,6 +323,9 @@ export default function CharacterPage() {
 
               {/* Character Inventory */}
               <CharacterInventory character={selectedCharacter} />
+
+              {/* Transaction History */}
+              <TransactionHistory character={selectedCharacter} />
 
               {/* Actions */}
               {selectedCharacter.is_alive && (

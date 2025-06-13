@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { marketService } from '@/services/market';
-import { MarketListing } from '@/types';
+import { MarketListing, ItemCategory, ItemRarity } from '@/types';
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
 import PriceChart, { VolumeChart } from './PriceChart';
 import LoadingSkeleton from './LoadingSkeleton';
@@ -58,8 +58,8 @@ export default function MarketItemModal({
   const itemInfo = listing.item_name ? {
     name: listing.item_name,
     description: listing.item_description || 'A valuable trade good',
-    category: listing.item_category || 'material',
-    rarity: listing.item_rarity || 'common'
+    category: (listing.item_category as ItemCategory) || ItemCategory.Material,
+    rarity: (listing.item_rarity as ItemRarity) || ItemRarity.Common
   } : getItemInfo(listing.item_id);
 
   return (

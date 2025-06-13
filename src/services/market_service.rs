@@ -5,7 +5,7 @@ use crate::models::{
 use crate::utils::AppError;
 use chrono::{DateTime, Duration, Utc};
 use rust_decimal::Decimal;
-use sqlx::{PgPool, Row};
+use sqlx::{PgPool, Row, Transaction, Postgres};
 use uuid::Uuid;
 
 pub struct MarketService;
@@ -201,13 +201,15 @@ impl MarketService {
 
         // 5. Update listing quantity
         if listing.quantity == request.quantity {
+            // If buying all remaining quantity, deactivate the listing
             sqlx::query(
-                "UPDATE market_listings SET is_active = false, quantity = 0 WHERE id = $1"
+                "UPDATE market_listings SET is_active = false WHERE id = $1"
             )
             .bind(listing.id)
             .execute(&mut *tx)
             .await?;
         } else {
+            // Otherwise, reduce the quantity
             sqlx::query(
                 "UPDATE market_listings SET quantity = quantity - $1 WHERE id = $2"
             )
@@ -216,6 +218,27 @@ impl MarketService {
             .execute(&mut *tx)
             .await?;
         }
+
+        // 6. Record transaction history
+        sqlx::query(
+            r#"
+            INSERT INTO market_transactions (
+                buyer_character_id, seller_character_id, listing_id, region_id,
+                item_id, quantity, price_per_unit, total_price, tax_amount
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            "#
+        )
+        .bind(buyer_character_id)
+        .bind(listing.seller_character_id)
+        .bind(listing.id)
+        .bind(listing.region_id)
+        .bind(listing.item_id)
+        .bind(request.quantity)
+        .bind(listing.effective_price())
+        .bind(total_cost)
+        .bind(tax_amount)
+        .execute(&mut *tx)
+        .await?;
 
         tx.commit().await?;
 
@@ -250,9 +273,11 @@ impl MarketService {
                 i.category as item_category,
                 i.rarity::text as item_rarity,
                 i.base_price as item_base_price,
-                i.weight as item_weight
+                i.weight as item_weight,
+                c.name as seller_character_name
             FROM market_listings ml
             JOIN items i ON ml.item_id = i.id
+            LEFT JOIN characters c ON ml.seller_character_id = c.id
             WHERE ml.region_id = $1 AND ml.is_active = true
         "#;
 
@@ -294,12 +319,14 @@ impl MarketService {
             let item_rarity: String = row.get("item_rarity");
             let item_base_price: Decimal = row.get("item_base_price");
             let item_weight: i32 = row.get("item_weight");
+            let seller_character_name: Option<String> = row.get("seller_character_name");
 
             serde_json::json!({
                 "id": id,
                 "region_id": region_id,
                 "item_id": item_id,
                 "seller_character_id": seller_character_id,
+                "seller_character_name": seller_character_name,
                 "price": price,
                 "quantity": quantity,
                 "original_quantity": original_quantity,
@@ -525,5 +552,89 @@ impl MarketService {
 
         tx.commit().await?;
         Ok(count)
+    }
+
+
+    /// Get transaction history for a character
+    pub async fn get_character_transactions(
+        pool: &PgPool,
+        character_id: Uuid,
+        limit: Option<i64>,
+        offset: Option<i64>,
+    ) -> Result<Vec<serde_json::Value>, AppError> {
+        let limit = limit.unwrap_or(50).min(100);
+        let offset = offset.unwrap_or(0);
+        
+        let transactions = sqlx::query(
+            r#"
+            SELECT 
+                mt.id,
+                mt.buyer_character_id,
+                mt.seller_character_id,
+                mt.listing_id,
+                mt.region_id,
+                mt.item_id,
+                mt.quantity,
+                mt.price_per_unit,
+                mt.total_price,
+                mt.tax_amount,
+                mt.transaction_type,
+                mt.created_at,
+                i.name as item_name,
+                i.description as item_description,
+                i.category as item_category,
+                i.rarity::text as item_rarity,
+                i.weight as item_weight,
+                r.name as region_name,
+                bc.name as buyer_name,
+                sc.name as seller_name,
+                CASE 
+                    WHEN mt.buyer_character_id = $1 THEN 'buy'
+                    WHEN mt.seller_character_id = $1 THEN 'sell'
+                    ELSE 'other'
+                END as transaction_side
+            FROM market_transactions mt
+            JOIN items i ON mt.item_id = i.id
+            JOIN regions r ON mt.region_id = r.id
+            LEFT JOIN characters bc ON mt.buyer_character_id = bc.id
+            LEFT JOIN characters sc ON mt.seller_character_id = sc.id
+            WHERE mt.buyer_character_id = $1 OR mt.seller_character_id = $1
+            ORDER BY mt.created_at DESC
+            LIMIT $2 OFFSET $3
+            "#
+        )
+        .bind(character_id)
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(pool)
+        .await?;
+        
+        let results: Vec<serde_json::Value> = transactions.into_iter().map(|row| {
+            serde_json::json!({
+                "id": row.get::<Uuid, _>("id"),
+                "buyer_character_id": row.get::<Uuid, _>("buyer_character_id"),
+                "seller_character_id": row.get::<Option<Uuid>, _>("seller_character_id"),
+                "listing_id": row.get::<Uuid, _>("listing_id"),
+                "region_id": row.get::<Uuid, _>("region_id"),
+                "item_id": row.get::<Uuid, _>("item_id"),
+                "quantity": row.get::<i32, _>("quantity"),
+                "price_per_unit": row.get::<Decimal, _>("price_per_unit").to_string(),
+                "total_price": row.get::<Decimal, _>("total_price").to_string(),
+                "tax_amount": row.get::<Decimal, _>("tax_amount").to_string(),
+                "transaction_type": row.get::<String, _>("transaction_type"),
+                "created_at": row.get::<DateTime<Utc>, _>("created_at"),
+                "item_name": row.get::<String, _>("item_name"),
+                "item_description": row.get::<Option<String>, _>("item_description"),
+                "item_category": row.get::<String, _>("item_category"),
+                "item_rarity": row.get::<String, _>("item_rarity"),
+                "item_weight": row.get::<i32, _>("item_weight"),
+                "region_name": row.get::<String, _>("region_name"),
+                "buyer_name": row.get::<Option<String>, _>("buyer_name"),
+                "seller_name": row.get::<Option<String>, _>("seller_name"),
+                "transaction_side": row.get::<String, _>("transaction_side"),
+            })
+        }).collect();
+        
+        Ok(results)
     }
 }

@@ -5,6 +5,7 @@ import { Character, CharacterInventory as InventoryType, ItemCategory, ItemRarit
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import SellItemModal from '@/components/SellItemModal';
+import ItemDetailsModal from '@/components/ItemDetailsModal';
 import { 
   CurrencyDollarIcon,
   ClockIcon,
@@ -19,6 +20,7 @@ interface CharacterInventoryProps {
 export default function CharacterInventory({ character }: CharacterInventoryProps) {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [sellingItem, setSellingItem] = useState<any | null>(null);
+  const [viewingItemDetails, setViewingItemDetails] = useState<any | null>(null);
 
   // Fetch inventory data
   const { data: inventory, isLoading, error } = useQuery({
@@ -89,6 +91,8 @@ export default function CharacterInventory({ character }: CharacterInventoryProp
       setSelectedItem={setSelectedItem}
       sellingItem={sellingItem}
       setSellingItem={setSellingItem}
+      viewingItemDetails={viewingItemDetails}
+      setViewingItemDetails={setViewingItemDetails}
       characterId={character.id}
     />;
   }
@@ -99,6 +103,8 @@ export default function CharacterInventory({ character }: CharacterInventoryProp
     setSelectedItem={setSelectedItem}
     sellingItem={sellingItem}
     setSellingItem={setSellingItem}
+    viewingItemDetails={viewingItemDetails}
+    setViewingItemDetails={setViewingItemDetails}
     characterId={character.id}
   />;
 }
@@ -109,6 +115,8 @@ interface CharacterInventoryDisplayProps {
   setSelectedItem: (item: string | null) => void;
   sellingItem: any | null;
   setSellingItem: (item: any | null) => void;
+  viewingItemDetails: any | null;
+  setViewingItemDetails: (item: any | null) => void;
   characterId: string;
 }
 
@@ -118,6 +126,8 @@ function CharacterInventoryDisplay({
   setSelectedItem,
   sellingItem,
   setSellingItem,
+  viewingItemDetails,
+  setViewingItemDetails,
   characterId
 }: CharacterInventoryDisplayProps) {
   const capacityPercentage = (inventory.used_capacity / inventory.capacity) * 100;
@@ -187,8 +197,8 @@ function CharacterInventoryDisplay({
             const itemInfo = inventoryItem.item_name ? {
               name: inventoryItem.item_name,
               description: inventoryItem.item_description || 'A valuable trade good',
-              category: inventoryItem.category || ItemCategory.Material,
-              rarity: inventoryItem.rarity || ItemRarity.Common
+              category: (inventoryItem.category as ItemCategory) || ItemCategory.Material,
+              rarity: (inventoryItem.rarity as ItemRarity) || ItemRarity.Common
             } : getItemInfo(inventoryItem.item_id);
             const unitPrice = parseFloat(inventoryItem.acquired_price);
             const totalValue = unitPrice * inventoryItem.quantity;
@@ -260,7 +270,13 @@ function CharacterInventoryDisplay({
                       >
                         Sell on Market
                       </button>
-                      <button className="btn-secondary text-sm">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewingItemDetails(inventoryItem);
+                        }}
+                        className="btn-secondary text-sm"
+                      >
                         View Details
                       </button>
                     </div>
@@ -278,6 +294,15 @@ function CharacterInventoryDisplay({
           item={sellingItem}
           characterId={characterId}
           onClose={() => setSellingItem(null)}
+        />
+      )}
+      
+      {/* Item Details Modal */}
+      {viewingItemDetails && (
+        <ItemDetailsModal
+          item={viewingItemDetails}
+          isOpen={!!viewingItemDetails}
+          onClose={() => setViewingItemDetails(null)}
         />
       )}
     </div>

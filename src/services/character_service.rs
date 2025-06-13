@@ -28,7 +28,7 @@ impl CharacterService {
         use rand::Rng;
         
         // Generate all random values before any await point
-        let (health, stamina, charisma, intelligence, luck) = {
+        let (health, stamina, charisma, intelligence, luck, starting_gold) = {
             let mut rng = rand::thread_rng();
             (
                 50 + rng.gen_range(0..31),        // 50-80
@@ -36,6 +36,7 @@ impl CharacterService {
                 40 + rng.gen_range(0..41),        // 40-80
                 40 + rng.gen_range(0..41),        // 40-80
                 30 + rng.gen_range(0..51),        // 30-80
+                500 + rng.gen_range(0..501),      // 500-1000 starting gold
             )
         };
 
@@ -62,7 +63,7 @@ impl CharacterService {
         .bind(luck)
         .bind(generation)
         .bind(request.parent_character_id)
-        .bind(rust_decimal::Decimal::from(0))
+        .bind(rust_decimal::Decimal::from(starting_gold))
         .fetch_one(pool)
         .await?;
 
@@ -251,9 +252,16 @@ impl CharacterService {
         pool: &PgPool,
         character_id: Uuid,
     ) -> Result<rust_decimal::Decimal, AppError> {
-        // For now, just count inventory value
-        // TODO: Add market prices, property, etc.
-        let wealth: (rust_decimal::Decimal,) = sqlx::query_as(
+        // Get character's liquid gold (inheritance_received)
+        let liquid_gold: (rust_decimal::Decimal,) = sqlx::query_as(
+            "SELECT inheritance_received FROM characters WHERE id = $1"
+        )
+        .bind(character_id)
+        .fetch_one(pool)
+        .await?;
+
+        // Get inventory value
+        let inventory_value: (rust_decimal::Decimal,) = sqlx::query_as(
             r#"
             SELECT COALESCE(SUM(CAST(quantity AS DECIMAL) * COALESCE(acquired_price, 0)), 0) as total_wealth
             FROM character_inventory
@@ -264,7 +272,8 @@ impl CharacterService {
         .fetch_one(pool)
         .await?;
 
-        Ok(wealth.0)
+        // Total wealth = liquid gold + inventory value
+        Ok(liquid_gold.0 + inventory_value.0)
     }
 
     fn calculate_market_impact(character: &Character, wealth: &rust_decimal::Decimal) -> i32 {

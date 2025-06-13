@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { MarketListing, Character } from '@/types';
+import { MarketListing, Character, ItemCategory, ItemRarity } from '@/types';
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
 
 interface PurchaseConfirmationModalProps {
@@ -23,13 +23,18 @@ export default function PurchaseConfirmationModal({
 
   if (!listing) return null;
 
-  const itemInfo = getItemInfo(listing.item_id);
+  const itemInfo = listing.item_name ? {
+    name: listing.item_name,
+    description: listing.item_description || 'A valuable trade good',
+    category: (listing.item_category as ItemCategory) || ItemCategory.Material,
+    rarity: (listing.item_rarity as ItemRarity) || ItemRarity.Common
+  } : getItemInfo(listing.item_id);
   const selectedCharacter = characters.find(c => c.id === selectedCharacterId);
   const livingCharacters = characters.filter(c => c.is_alive);
   
   const unitPrice = parseFloat(listing.price);
   const totalPrice = unitPrice * quantity;
-  const characterWealth = selectedCharacter?.wealth ? parseFloat(selectedCharacter.wealth) : 0;
+  const characterWealth = selectedCharacter?.inheritance_received ? parseFloat(selectedCharacter.inheritance_received) : 0;
   const canAfford = characterWealth >= totalPrice;
 
   const handleConfirm = () => {
@@ -90,7 +95,7 @@ export default function PurchaseConfirmationModal({
               >
                 {livingCharacters.map((character) => (
                   <option key={character.id} value={character.id}>
-                    {character.name} - {parseFloat(character.wealth || '0').toLocaleString()} gold
+                    {character.name} - {parseFloat(character.inheritance_received || '0').toLocaleString()} gold
                   </option>
                 ))}
               </select>

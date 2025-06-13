@@ -237,3 +237,39 @@ pub async fn get_character_inventory(
         }
     })))
 }
+
+/// Get character transaction history
+pub async fn get_character_transactions(
+    State(pool): State<Arc<PgPool>>,
+    Extension(claims): Extension<Claims>,
+    Path(character_id): Path<Uuid>,
+) -> Result<Json<Value>, AppError> {
+    let user_id = Uuid::parse_str(&claims.sub)?;
+    
+    // Verify character belongs to user's dynasty
+    let character = CharacterService::get_character(&pool, character_id).await?;
+    
+    let owns_character: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM dynasties WHERE id = $1 AND user_id = $2)"
+    )
+    .bind(character.dynasty_id)
+    .bind(user_id)
+    .fetch_one(&*pool)
+    .await?;
+
+    if !owns_character {
+        return Err(AppError::Forbidden);
+    }
+
+    // Get transaction history
+    let transactions = crate::services::MarketService::get_character_transactions(
+        &pool,
+        character_id,
+        None,
+        None
+    ).await?;
+
+    Ok(Json(json!({
+        "transactions": transactions
+    })))
+}

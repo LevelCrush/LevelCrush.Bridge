@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { marketService } from '@/services/market';
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
-import { MarketRegion } from '@/types';
+import { MarketRegion, ItemCategory, ItemRarity } from '@/types';
 import toast from 'react-hot-toast';
 
 interface SellItemModalProps {
@@ -29,8 +29,8 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
   const itemInfo = item.item_name ? {
     name: item.item_name,
     description: item.item_description || 'A valuable trade good',
-    category: item.category || 'material',
-    rarity: item.rarity || 'common'
+    category: (item.category as ItemCategory) || ItemCategory.Material,
+    rarity: (item.rarity as ItemRarity) || ItemRarity.Common
   } : getItemInfo(item.item_id);
   const acquiredPrice = parseFloat(item.acquired_price);
 

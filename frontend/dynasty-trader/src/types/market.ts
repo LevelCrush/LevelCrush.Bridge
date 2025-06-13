@@ -47,6 +47,7 @@ export interface MarketListing {
   region_id: string;
   item_id: string;
   seller_character_id?: string;
+  seller_character_name?: string;
   price: string; // Decimal as string
   quantity: number;
   original_quantity: number;

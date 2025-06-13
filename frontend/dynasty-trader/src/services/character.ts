@@ -30,4 +30,9 @@ export const characterService = {
     const response = await api.get<{ inventory: CharacterInventory }>(`/characters/${id}/inventory`);
     return response.inventory;
   },
+
+  async getCharacterTransactions(id: string): Promise<any[]> {
+    const response = await api.get<{ transactions: any[] }>(`/characters/${id}/transactions`);
+    return response.transactions;
+  },
 };

@@ -55,11 +55,11 @@
   - [x] Clear cost breakdown
 - [x] Character inventory management
   - [x] View character inventory
-  - [ ] Item details modal
-  - [ ] Sell items to market
+  - [x] Item details modal
+  - [x] Sell items to market
   - [ ] Transfer items between characters
 - [ ] Actual market trading
-  - [ ] Transaction history
+  - [x] Transaction history
   - [ ] Sell orders creation
   - [ ] Price history for owned items
 
@@ -104,11 +104,11 @@
 1. **Market Listings Display** ✅ FIXED
    - ~~Currently showing item_id instead of item names~~
    - ~~Need to fetch and display actual item information~~
-   - Using mock data until backend provides items endpoint
+   - Fixed by joining with items table in backend
 
-2. **Character Wealth Calculation**
-   - Wealth is fetched separately from stats endpoint
-   - Should be integrated better in the UI
+2. **Character Wealth Calculation** ✅ FIXED
+   - ~~Wealth is fetched separately from stats endpoint~~
+   - Fixed calculation to multiply quantity × price
 
 3. **Region Navigation**
    - No visual indication of character's current location
@@ -122,14 +122,11 @@
    - Limited validation on character/dynasty names
    - Need better error messages
 
-6. **Aggressive Aging System** 🔥 CRITICAL
-   - Characters are created with birth_date = NOW() (0 years old)
-   - Aging task runs every hour and can kill newborns
-   - Characters can die within hours of creation
-   - Need to either:
-     - Start characters at age 16-20
-     - Adjust death probability for young characters
-     - Make aging interval configurable
+6. **Aggressive Aging System** ⚠️ PARTIALLY FIXED
+   - ~~Characters are created with birth_date = NOW() (0 years old)~~
+   - Characters now start at age 18
+   - Aging task still runs every hour
+   - Death probability needs adjustment for game balance
    - Current death rates: 0% (0-30), 0.1% (31-50), 1% (51-60), 5% (61-70), 15% (71-80)
 
 ## 💡 Future Enhancements
@@ -201,9 +198,39 @@
 
 Total: ~2 weeks for next major release
 
-## 🎆 Recent Updates (2025-01-13)
+## 🎆 Recent Updates (2025-06-13)
 
-### Completed
+### Bug Fixes Session
+1. **Character Display Issues** ✅
+   - Fixed characters not showing due to aggressive aging (dying at age 0)
+   - Characters now start at age 18
+   - Both living and dead characters now display properly
+   - Deceased count shows correctly
+
+2. **Inventory System** ✅
+   - Fixed 404 error by implementing missing inventory endpoint
+   - Added starting inventory for new characters (random items)
+   - Fixed "Item hash" display by joining with items table
+   - Inventory now shows actual item names, descriptions, categories
+
+3. **Market Functionality** ✅
+   - Implemented "Sell on Market" modal with region selection
+   - Fixed market listings showing "Item hash" 
+   - Added item details to market listing responses
+   - Fixed SQL type mismatch for item_rarity enum
+   - Added profit/loss calculations for sales
+
+4. **UI/UX Improvements** ✅
+   - Fixed button icons appearing on top of text
+   - Fixed "sellingItem is not defined" JavaScript error
+   - Prevented event propagation on sell button clicks
+
+5. **Backend Fixes** ✅
+   - Fixed character stats endpoint 500 error
+   - Corrected wealth calculation (quantity × price)
+   - Fixed Send trait issues with async random values
+
+### Previous Updates (2025-01-13)
 1. **Market Item Display**
    - Created comprehensive mock items data
    - Items now show names, categories, and descriptions
@@ -228,9 +255,10 @@ Total: ~2 weeks for next major release
 
 ### Next Up
 1. Item details modal (separate from inventory expansion)
-2. Sell items to market functionality
-3. Transaction history
+2. Transaction history
+3. Character location indicators
+4. Travel between regions
 
 ---
 
-Last Updated: 2025-01-13 (Evening, Inventory Added)
+Last Updated: 2025-06-13 (Bug Fix Session)

@@ -7,6 +7,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Bug Fixes and Improvements (2025-06-13)
+
+#### Fixed
+- **Marketplace Display Issues**
+  - Fixed sellers showing as UUID hashes instead of character names
+  - Added seller_character_name to market listings query by joining with characters table
+  - Fixed character gold display in purchase modal to use inheritance_received instead of non-existent wealth field
+  - Converted region selection from vertical button list to a dropdown for better space efficiency
+  - Fixed item names showing as hashes in purchase confirmation modal
+
+- **Purchase Transaction Error**
+  - Fixed "market_listings_quantity_check" constraint violation when purchasing all items
+  - Changed logic to set is_active=false instead of quantity=0 when listing is fully purchased
+  - Database constraint requires quantity > 0, so we avoid setting it to 0
+- **Character Display Issues**
+  - Fixed characters not showing for user accounts due to aggressive aging system
+  - Characters now start at age 18 instead of 0 to prevent immediate death
+  - Updated `get_dynasty_characters` to return both living and dead characters
+  - Added proper deceased character count display
+
+- **Inventory System**
+  - Fixed 404 error on inventory endpoint by implementing missing route
+  - Added starting inventory for new characters (random items on creation)
+  - Fixed inventory item names showing as "Item hash" by joining with items table
+  - Added item details (name, description, category, rarity) to inventory response
+
+- **Market Functionality**
+  - Implemented "Sell on Market" functionality with modal interface
+  - Fixed market listings showing "Item hash" instead of actual item names
+  - Added item details to market listing responses
+  - Fixed SQL type mismatch for item_rarity enum (cast to text)
+  - Added profit/loss calculations for market sales
+
+- **UI/UX Improvements**
+  - Fixed button icons appearing on top of text instead of inline
+  - Added proper flexbox layout to Trade and Create Character buttons
+  - Fixed JavaScript error "sellingItem is not defined" in inventory component
+  - Prevented event propagation on sell button clicks
+
+- **Backend Fixes**
+  - Fixed character stats endpoint 500 error
+  - Corrected wealth calculation to multiply quantity × price instead of just summing quantities
+  - Added proper Send trait handling for async operations with random values
+
+#### Added
+- **Character Inventory Management**
+  - GET `/api/v2/characters/:id/inventory` endpoint
+  - Starting inventory system with random item allocation
+  - Support for viewing both living and deceased character inventories
+
+- **Market Selling**
+  - SellItemModal component with region selection and pricing
+  - Market tax calculations and net profit display
+  - Character-based inventory deduction on sales
+
+- **Item Details Modal**
+  - Created ItemDetailsModal component for detailed item information
+  - Shows item rarity with star rating and colored background
+  - Displays base price, weight, category, and quantity
+  - Includes acquisition details and flavor text
+  - Integrated into CharacterInventory and MarketPage components
+
+- **Transaction History**
+  - Created market_transactions table to track all purchases and sales
+  - Added transaction recording to purchase_listing service method
+  - Implemented GET `/api/v2/characters/:id/transactions` endpoint
+  - Created TransactionHistory component with expandable details
+  - Shows buy/sell side, prices, taxes, and net amounts
+  - Integrated into CharacterPage below inventory
+
+- **Character Starting Gold**
+  - New characters now start with 500-1000 gold (randomized)
+  - Updated existing characters to have starting gold (750 for living, 500 for dead)
+  - Ensures all players can participate in market trading immediately
+
 ### Frontend Enhancements (2025-01-13 Evening)
 
 #### Added

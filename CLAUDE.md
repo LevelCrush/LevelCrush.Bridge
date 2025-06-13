@@ -290,6 +290,10 @@ This project is transitioning from a multi-game inventory bridge to a groundbrea
 - **No regions available for trading** - Fixed by creating seed migration with 8 regions
 - **Market stats showing NaN for average_transaction_value** - Fixed by updating MarketStats interface to match backend (removed non-existent field)
 - **Double API path issue (/api/v2/api/v2/...)** - Fixed by removing /api/v2 prefix from service calls since ApiClient already includes it
+- **Sellers showing as hashes** - Fixed by adding seller_character_name to market listings query
+- **Character gold not displaying in purchase modal** - Fixed by using inheritance_received instead of wealth field
+- **Purchase database constraint error** - Fixed by setting is_active=false instead of quantity=0 when all items purchased
+- **Item names showing as hashes in purchase modal** - Fixed by using listing data instead of mock lookup
 
 ### Current Frontend Features
 - JWT authentication with automatic token refresh

@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { marketService } from '@/services/market';
 import { characterService } from '@/services/character';
-import { MarketRegion, MarketListing, MarketEvent, ItemCategory } from '@/types';
+import { MarketRegion, MarketListing, MarketEvent, ItemCategory, ItemRarity } from '@/types';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { MarketListingSkeleton, StatCardSkeleton } from '@/components/LoadingSkeleton';
 import MarketItemModal from '@/components/MarketItemModal';
 import PurchaseConfirmationModal from '@/components/PurchaseConfirmationModal';
+import ItemDetailsModal from '@/components/ItemDetailsModal';
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
 import { 
   BuildingStorefrontIcon,
@@ -27,6 +28,7 @@ export default function MarketPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedListing, setSelectedListing] = useState<MarketListing | null>(null);
   const [purchasingListing, setPurchasingListing] = useState<MarketListing | null>(null);
+  const [viewingItemDetails, setViewingItemDetails] = useState<MarketListing | null>(null);
   const queryClient = useQueryClient();
   const { isConnected, socket, subscribe, unsubscribe } = useWebSocket();
 
@@ -216,32 +218,45 @@ export default function MarketPage() {
           <div className="lg:col-span-1">
             <div className="card lg:sticky lg:top-4">
               <h2 className="text-lg font-medium text-white mb-4">Select Region</h2>
-              <div className="space-y-2">
+              <select
+                value={selectedRegion?.id || ''}
+                onChange={(e) => {
+                  const region = regions.find(r => r.id === e.target.value);
+                  setSelectedRegion(region || null);
+                }}
+                className="input w-full"
+              >
+                <option value="">Choose a region...</option>
                 {regions.map((region) => (
-                  <button
-                    key={region.id}
-                    onClick={() => setSelectedRegion(region)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
-                      selectedRegion?.id === region.id
-                        ? 'bg-dynasty-600 border border-dynasty-500'
-                        : 'bg-slate-700 hover:bg-slate-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-white flex items-center">
-                          {region.is_capital && <BuildingStorefrontIcon className="h-4 w-4 mr-1 text-dynasty-400" />}
-                          {region.name}
-                        </p>
-                        <p className="text-sm text-slate-400">
-                          Safety: {region.safety_level}% • Prosperity: {region.prosperity_level}%
-                        </p>
-                      </div>
-                      <MapPinIcon className="h-5 w-5 text-slate-400" />
-                    </div>
-                  </button>
+                  <option key={region.id} value={region.id}>
+                    {region.is_capital ? '🏛️ ' : ''}{region.name} (Safety: {region.safety_level}%, Prosperity: {region.prosperity_level}%)
+                  </option>
                 ))}
-              </div>
+              </select>
+              
+              {selectedRegion && (
+                <div className="mt-4 p-3 bg-slate-700 rounded-lg">
+                  <p className="font-medium text-white flex items-center">
+                    {selectedRegion.is_capital && <BuildingStorefrontIcon className="h-4 w-4 mr-1 text-dynasty-400" />}
+                    {selectedRegion.name}
+                  </p>
+                  <p className="text-sm text-slate-400 mt-1">{selectedRegion.description}</p>
+                  <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                    <div>
+                      <span className="text-slate-400">Safety:</span>
+                      <span className="ml-1 text-white">{selectedRegion.safety_level}%</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Prosperity:</span>
+                      <span className="ml-1 text-white">{selectedRegion.prosperity_level}%</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400">Tax Rate:</span>
+                      <span className="ml-1 text-white">{(parseFloat(selectedRegion.tax_rate) * 100).toFixed(1)}%</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Filters */}
@@ -359,8 +374,8 @@ export default function MarketPage() {
                         const itemInfo = listing.item_name ? {
                           name: listing.item_name,
                           description: listing.item_description || 'A valuable trade good',
-                          category: listing.item_category || 'material',
-                          rarity: listing.item_rarity || 'common'
+                          category: (listing.item_category as ItemCategory) || ItemCategory.Material,
+                          rarity: (listing.item_rarity as ItemRarity) || ItemRarity.Common
                         } : getItemInfo(listing.item_id);
                         return (
                           <div
@@ -372,7 +387,7 @@ export default function MarketPage() {
                               itemInfo.rarity === 'uncommon' ? 'border-green-900/50 hover:border-green-800 hover:shadow-lg hover:shadow-green-900/20' :
                               'border-slate-600 hover:border-slate-500'
                             } hover:bg-slate-600`}
-                            onClick={() => setSelectedListing(listing)}
+                            onClick={() => setViewingItemDetails(listing)}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
@@ -391,17 +406,17 @@ export default function MarketPage() {
                                   )}
                                 </div>
                                 <div className="mt-1 flex items-center space-x-4 text-sm text-slate-400">
-                                  <span className={getCategoryColor(itemInfo.category)}>
+                                  <span className={getCategoryColor(itemInfo.category as ItemCategory)}>
                                     {itemInfo.category.charAt(0).toUpperCase() + itemInfo.category.slice(1)}
                                   </span>
                                   <span>•</span>
                                   <span>Qty: {listing.quantity}</span>
                                   <span>•</span>
                                   <span>Listed: {new Date(listing.listed_at).toLocaleDateString()}</span>
-                                  {listing.seller_character_id && (
+                                  {listing.seller_character_name && (
                                     <>
                                       <span>•</span>
-                                      <span>Seller: {listing.seller_character_id.slice(0, 8)}...</span>
+                                      <span>Seller: {listing.seller_character_name}</span>
                                     </>
                                   )}
                                 </div>
@@ -449,6 +464,15 @@ export default function MarketPage() {
         onConfirm={handleConfirmPurchase}
         onCancel={() => setPurchasingListing(null)}
       />
+      
+      {/* Item Details Modal */}
+      {viewingItemDetails && (
+        <ItemDetailsModal
+          item={viewingItemDetails}
+          isOpen={!!viewingItemDetails}
+          onClose={() => setViewingItemDetails(null)}
+        />
+      )}
     </div>
   );
 }
