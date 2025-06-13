@@ -26,14 +26,18 @@ impl CharacterService {
 
         // Generate initial stats with some randomness
         use rand::Rng;
-        let mut rng = rand::thread_rng();
         
-        // Base stats plus random bonus (ensures all stats are positive)
-        let health = 50 + rng.gen_range(0..31);        // 50-80
-        let stamina = 50 + rng.gen_range(0..31);       // 50-80
-        let charisma = 40 + rng.gen_range(0..41);      // 40-80
-        let intelligence = 40 + rng.gen_range(0..41);  // 40-80
-        let luck = 30 + rng.gen_range(0..51);          // 30-80
+        // Generate all random values before any await point
+        let (health, stamina, charisma, intelligence, luck) = {
+            let mut rng = rand::thread_rng();
+            (
+                50 + rng.gen_range(0..31),        // 50-80
+                50 + rng.gen_range(0..31),        // 50-80
+                40 + rng.gen_range(0..41),        // 40-80
+                40 + rng.gen_range(0..41),        // 40-80
+                30 + rng.gen_range(0..51),        // 30-80
+            )
+        };
 
         let character = sqlx::query_as::<_, Character>(
             r#"

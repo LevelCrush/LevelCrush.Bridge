@@ -29,7 +29,50 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
         .route("/dynasties/me/reputation", put(dynasty::modify_reputation))
         
         // Character routes
-        // .route("/characters", post(dynasty::create_character_temp))
+        .route("/characters", post({
+            use crate::models::CreateCharacterRequest;
+            use crate::services::CharacterService;
+            
+            #[derive(serde::Deserialize)]
+            struct CreateReq {
+                name: String,
+                dynasty_id: uuid::Uuid,
+            }
+            
+            |axum::extract::State(pool): axum::extract::State<Arc<PgPool>>, 
+             axum::Extension(claims): axum::Extension<crate::utils::Claims>,
+             axum::Json(req): axum::Json<CreateReq>| async move {
+                let user_id = uuid::Uuid::parse_str(&claims.sub)
+                    .map_err(|_| crate::utils::AppError::BadRequest("Invalid user ID".to_string()))?;
+                
+                // Verify user owns this dynasty
+                let owns_dynasty: bool = sqlx::query_scalar(
+                    "SELECT EXISTS(SELECT 1 FROM dynasties WHERE id = $1 AND user_id = $2)"
+                )
+                .bind(req.dynasty_id)
+                .bind(user_id)
+                .fetch_one(&*pool)
+                .await
+                .map_err(|e| crate::utils::AppError::Database(e))?;
+                
+                if !owns_dynasty {
+                    return Err(crate::utils::AppError::Forbidden);
+                }
+                
+                // Create the internal request
+                let request = CreateCharacterRequest {
+                    dynasty_id: req.dynasty_id,
+                    name: req.name,
+                    parent_character_id: None,
+                };
+
+                let character = CharacterService::create_character(&pool, req.dynasty_id, request).await?;
+
+                Ok(axum::Json(serde_json::json!({
+                    "character": character
+                })))
+            }
+        }))
         .route("/characters", get(character::get_dynasty_characters))
         .route("/characters/:id", get(character::get_character))
         .route("/characters/:id/stats", get(character::get_character_stats))
