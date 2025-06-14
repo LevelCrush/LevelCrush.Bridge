@@ -10,15 +10,23 @@ import {
   Bars3Icon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-import { Skull } from 'lucide-react';
-import { useState } from 'react';
+import { Skull, BarChart3 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 
 const navigation = [
   { name: 'Home', href: '/', icon: HomeIcon, public: true },
   { name: 'Dashboard', href: '/dashboard', icon: ChartBarIcon },
   { name: 'Character', href: '/character', icon: UserIcon },
-  { name: 'Market', href: '/market', icon: ChartBarIcon },
+  { 
+    name: 'Market', 
+    href: '/market', 
+    icon: ChartBarIcon,
+    submenu: [
+      { name: 'Trading', href: '/market' },
+      { name: 'Analytics', href: '/market-analytics' },
+    ]
+  },
   { name: 'Dynasty', href: '/dynasty', icon: UsersIcon },
   { name: 'Deaths', href: '/deaths', icon: Skull },
 ];
@@ -29,6 +37,22 @@ export default function Layout() {
   const { user, isAuthenticated, logout } = useAuth();
   const { isConnected } = useWebSocket();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [marketSubmenuOpen, setMarketSubmenuOpen] = useState(false);
+  const marketDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (marketDropdownRef.current && !marketDropdownRef.current.contains(event.target as Node)) {
+        setMarketSubmenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -51,8 +75,56 @@ export default function Layout() {
                 </Link>
               </div>
               <div className="hidden md:block">
-                <div className="ml-10 flex items-baseline space-x-4">
+                <div className="ml-10 flex items-baseline space-x-2">
                   {filteredNavigation.map((item) => {
+                    if (item.submenu) {
+                      const isActive = item.submenu.some(sub => location.pathname === sub.href);
+                      return (
+                        <div key={item.name} className="relative" ref={marketDropdownRef}>
+                          <button
+                            onClick={() => setMarketSubmenuOpen(!marketSubmenuOpen)}
+                            className={clsx(
+                              isActive
+                                ? 'bg-slate-900 text-white'
+                                : 'text-slate-300 hover:bg-slate-700 hover:text-white',
+                              'group flex items-center px-3 py-2 text-sm font-medium rounded-md'
+                            )}
+                          >
+                            <item.icon
+                              className={clsx(
+                                isActive ? 'text-dynasty-400' : 'text-slate-400',
+                                'mr-2 h-4 w-4 flex-shrink-0'
+                              )}
+                              aria-hidden="true"
+                            />
+                            {item.name}
+                            <svg className="ml-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          {marketSubmenuOpen && (
+                            <div className="absolute top-full left-0 mt-1 w-48 bg-slate-700 border border-slate-600 rounded-md shadow-lg z-50">
+                              {item.submenu.map((subItem) => (
+                                <Link
+                                  key={subItem.name}
+                                  to={subItem.href}
+                                  className={clsx(
+                                    location.pathname === subItem.href
+                                      ? 'bg-slate-600 text-white'
+                                      : 'text-slate-300 hover:bg-slate-600 hover:text-white',
+                                    'block px-4 py-2 text-sm'
+                                  )}
+                                  onClick={() => setMarketSubmenuOpen(false)}
+                                >
+                                  {subItem.name}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    
                     const isActive = location.pathname === item.href;
                     return (
                       <Link
@@ -68,7 +140,7 @@ export default function Layout() {
                         <item.icon
                           className={clsx(
                             isActive ? 'text-dynasty-400' : 'text-slate-400',
-                            'mr-3 h-5 w-5 flex-shrink-0'
+                            'mr-2 h-4 w-4 flex-shrink-0'
                           )}
                           aria-hidden="true"
                         />
@@ -141,6 +213,31 @@ export default function Layout() {
           <div className="md:hidden">
             <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
               {filteredNavigation.map((item) => {
+                if (item.submenu) {
+                  return (
+                    <div key={item.name} className="space-y-1">
+                      <div className="text-slate-400 text-sm font-medium px-3 py-1">
+                        {item.name}
+                      </div>
+                      {item.submenu.map((subItem) => (
+                        <Link
+                          key={subItem.name}
+                          to={subItem.href}
+                          className={clsx(
+                            location.pathname === subItem.href
+                              ? 'bg-slate-900 text-white'
+                              : 'text-slate-300 hover:bg-slate-700 hover:text-white',
+                            'group flex items-center px-6 py-2 text-base font-medium rounded-md'
+                          )}
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {subItem.name}
+                        </Link>
+                      ))}
+                    </div>
+                  );
+                }
+                
                 const isActive = location.pathname === item.href;
                 return (
                   <Link

@@ -12,6 +12,7 @@ import CharacterPage from '@/pages/CharacterPage';
 import MarketPage from '@/pages/MarketPage';
 import DynastyPage from '@/pages/DynastyPage';
 import RecentDeathsPage from '@/pages/RecentDeathsPage';
+import MarketAnalyticsPage from '@/pages/MarketAnalyticsPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { WebSocketProvider } from '@/contexts/WebSocketContext';
@@ -42,6 +43,7 @@ function App() {
                   <Route path="dashboard" element={<DashboardPage />} />
                   <Route path="character" element={<CharacterPage />} />
                   <Route path="market" element={<MarketPage />} />
+                  <Route path="market-analytics" element={<MarketAnalyticsPage />} />
                   <Route path="dynasty" element={<DynastyPage />} />
                   <Route path="deaths" element={<RecentDeathsPage />} />
                 </Route>

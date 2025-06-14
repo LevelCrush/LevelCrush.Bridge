@@ -9,6 +9,7 @@ pub mod auth;
 pub mod character;
 pub mod dynasty;
 pub mod market;
+pub mod market_analytics;
 pub mod death;
 
 use crate::api::middleware::auth_pg::auth_middleware_pg;
@@ -92,6 +93,9 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
         .route("/market/regions/:region_id/items/:item_id/history", get(market::get_price_history))
         .route("/market/events", get(market::get_market_events))
         
+        // Market Analytics routes (protected)
+        .route("/market/regions/:region_id/items/:item_id/indicators", get(market_analytics::get_technical_indicators))
+        
         // Death routes
         .route("/deaths/recent", get(death::get_recent_deaths))
         .route("/dynasties/:id/deaths", get(death::get_dynasty_death_stats))
@@ -106,6 +110,9 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
         .route("/auth/register", post(auth::register))
         .route("/auth/login", post(auth::login))
         .route("/auth/refresh", post(auth::refresh_token))
+        // Public market analytics
+        .route("/market/overview", get(market_analytics::get_market_overview))
+        .route("/market/regional-analytics", get(market_analytics::get_regional_analytics))
         .merge(protected_routes)
         .with_state(pool)
 }
