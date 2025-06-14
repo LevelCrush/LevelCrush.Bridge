@@ -63,6 +63,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Clarified that users create accounts first, then dynasties after login
   - Updated success messages and button text for consistency
 
+- **Character Location Display**
+  - Fixed character location not updating after travel without page refresh
+  - Added onTravelSuccess callback to TravelModal component
+  - Update selectedCharacter state when travel completes successfully
+  - Location now updates immediately in the UI after travel
+
 ### Bug Fixes and Improvements (2025-06-13)
 
 #### Fixed

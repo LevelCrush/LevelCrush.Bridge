@@ -233,6 +233,11 @@ npm run lint
 - Check manifest.json is accessible
 - Verify service worker is registered
 
+### UI Not Updating
+- Character location updates immediately after travel (no refresh needed)
+- Market data updates via WebSocket in real-time
+- If data seems stale, check network tab for failed requests
+
 ## License
 
 This project is licensed under the MIT License.

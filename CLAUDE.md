@@ -304,6 +304,7 @@ This project is transitioning from a multi-game inventory bridge to a groundbrea
 - **Item names showing as hashes in purchase modal** - Fixed by using listing data instead of mock lookup
 - **Characters without locations** - Fixed by defaulting new characters to Capital City and migrating existing characters
 - **Confusing "Dynasty name" field on registration** - Updated to "Username" with clearer labels and messaging
+- **Character location not updating after travel** - Fixed by updating local state and cache when travel completes
 - **Category filter not working** - Fixed by updating ItemCategory enum to match database values (Food, Raw Material, Equipment, Luxury, Textile)
 - **Marketplace character dropdown not updating** - Fixed by implementing Zustand store to persist selected character across pages
 

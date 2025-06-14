@@ -55,6 +55,11 @@ All notable changes to the Dynasty Trader frontend will be documented in this fi
   - Updated page titles and messaging for better flow
   - Clarified account creation vs dynasty creation process
 
+- **Travel Location Updates**
+  - Fixed location not updating immediately after travel
+  - Added callback to update local state when travel succeeds
+  - Character's current location now reflects changes without refresh
+
 ## [0.1.0] - 2025-06-13
 
 ### Initial Release
