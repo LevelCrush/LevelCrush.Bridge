@@ -7,6 +7,7 @@ import { Character, CharacterStats } from '@/types';
 import CharacterInventory from '@/components/CharacterInventory';
 import TransactionHistory from '@/components/TransactionHistory';
 import TravelModal from '@/components/TravelModal';
+import { useCharacterStore } from '@/stores/characterStore';
 import { 
   UserIcon, 
   HeartIcon, 
@@ -21,6 +22,7 @@ import toast from 'react-hot-toast';
 
 export default function CharacterPage() {
   const navigate = useNavigate();
+  const setSelectedCharacterId = useCharacterStore((state) => state.setSelectedCharacterId);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [showTravelModal, setShowTravelModal] = useState(false);
 
@@ -211,7 +213,10 @@ export default function CharacterPage() {
                         Travel
                       </button>
                       <button
-                        onClick={() => navigate('/market')}
+                        onClick={() => {
+                          setSelectedCharacterId(selectedCharacter.id);
+                          navigate('/market');
+                        }}
                         className="btn-primary flex items-center"
                       >
                         <CurrencyDollarIcon className="-ml-1 mr-2 h-5 w-5" />
@@ -359,7 +364,10 @@ export default function CharacterPage() {
                   <h3 className="text-lg font-medium text-white mb-3">Actions</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     <button
-                      onClick={() => navigate('/market')}
+                      onClick={() => {
+                        setSelectedCharacterId(selectedCharacter.id);
+                        navigate('/market');
+                      }}
                       className="btn-secondary text-sm"
                     >
                       Visit Market

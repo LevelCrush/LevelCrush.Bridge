@@ -4,6 +4,7 @@ import { marketService } from '@/services/market';
 import { characterService } from '@/services/character';
 import { MarketRegion, MarketListing, MarketEvent, ItemCategory, ItemRarity } from '@/types';
 import { useWebSocket } from '@/contexts/WebSocketContext';
+import { useCharacterStore } from '@/stores/characterStore';
 import { MarketListingSkeleton, StatCardSkeleton } from '@/components/LoadingSkeleton';
 import MarketItemModal from '@/components/MarketItemModal';
 import PurchaseConfirmationModal from '@/components/PurchaseConfirmationModal';
@@ -30,7 +31,8 @@ export default function MarketPage() {
   const [selectedListing, setSelectedListing] = useState<MarketListing | null>(null);
   const [purchasingListing, setPurchasingListing] = useState<MarketListing | null>(null);
   const [viewingItemDetails, setViewingItemDetails] = useState<MarketListing | null>(null);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  const storedCharacterId = useCharacterStore((state) => state.selectedCharacterId);
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(storedCharacterId);
   const queryClient = useQueryClient();
   const { isConnected, socket, subscribe, unsubscribe } = useWebSocket();
 
@@ -203,7 +205,10 @@ export default function MarketPage() {
                   <UserIcon className="h-5 w-5 text-slate-400" />
                   <select
                     value={selectedCharacterId || ''}
-                    onChange={(e) => setSelectedCharacterId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedCharacterId(e.target.value);
+                      useCharacterStore.getState().setSelectedCharacterId(e.target.value);
+                    }}
                     className="input py-1 px-3 text-sm min-w-[150px]"
                   >
                     {livingCharacters.map((character) => (
