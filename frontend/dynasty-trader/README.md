@@ -12,12 +12,25 @@ A React-based Progressive Web App (PWA) for Dynasty Trader - a roguelike economy
   - Characters start with 500-1000 gold in Capital City
   - Age and eventually die, passing wealth to heirs
   - Travel between 8 unique regions
+  - Comprehensive stats display with skills, bonuses, and life progression
 - **Market Trading**:
   - Browse regional markets with different tax rates and prosperity levels
+  - Marketplace automatically defaults to character's current location
   - Buy and sell items with real-time price updates
   - Filter by category (Food, Equipment, Raw Material, Luxury, Textile)
-  - View transaction history with profit/loss tracking
-- **Inventory Management**: View items, sell to market, track values
+  - Visual indicators showing character's location in region selector
+- **Inventory Management**: 
+  - Real-time search by item name or description
+  - Filter by category and rarity
+  - Sort by name, value, quantity, or acquisition date
+  - Capacity tracking with visual indicators
+  - Sell interface with market analysis and profit calculations
+  - Detailed item information modals
+- **Transaction History**:
+  - Advanced filtering by transaction type (buy/sell) and time range
+  - Financial statistics dashboard (total spent/earned, net profit, taxes)
+  - Search functionality for items, traders, and regions
+  - Expandable transaction details with full information
 - **Death & Inheritance System**:
   - Real-time death notifications with market impact
   - Detailed inheritance flow for your characters

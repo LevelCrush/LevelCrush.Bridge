@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { characterService } from '@/services/character';
 import { Character, CharacterInventory as InventoryType, ItemCategory, ItemRarity } from '@/types';
@@ -10,7 +10,11 @@ import {
   CurrencyDollarIcon,
   ClockIcon,
   ChartBarIcon,
-  ArchiveBoxIcon
+  ArchiveBoxIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  SparklesIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
 
 interface CharacterInventoryProps {
@@ -130,6 +134,12 @@ function CharacterInventoryDisplay({
   setViewingItemDetails,
   characterId
 }: CharacterInventoryDisplayProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedRarity, setSelectedRarity] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'value' | 'quantity' | 'acquired'>('name');
+  const [showFilters, setShowFilters] = useState(false);
+  
   const capacityPercentage = (inventory.used_capacity / inventory.capacity) * 100;
   const getCapacityColor = () => {
     if (capacityPercentage >= 90) return 'text-red-400 bg-red-900';
@@ -156,6 +166,96 @@ function CharacterInventoryDisplay({
     return `${months} months ago`;
   };
 
+  // Filter and sort inventory items
+  const filteredAndSortedItems = useMemo(() => {
+    let items = [...inventory.items];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      items = items.filter(item => {
+        const info = item.item_name ? {
+          name: item.item_name,
+          description: item.item_description || '',
+          category: item.category || '',
+          rarity: item.rarity || ''
+        } : getItemInfo(item.item_id);
+        
+        return info.name.toLowerCase().includes(query) || 
+               info.description.toLowerCase().includes(query);
+      });
+    }
+
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      items = items.filter(item => {
+        const info = item.category || getItemInfo(item.item_id).category;
+        return info === selectedCategory;
+      });
+    }
+
+    // Apply rarity filter
+    if (selectedRarity !== 'all') {
+      items = items.filter(item => {
+        const info = item.rarity || getItemInfo(item.item_id).rarity;
+        return info === selectedRarity;
+      });
+    }
+
+    // Apply sorting
+    items.sort((a, b) => {
+      const aInfo = a.item_name ? {
+        name: a.item_name,
+        rarity: a.rarity as ItemRarity || ItemRarity.Common
+      } : getItemInfo(a.item_id);
+      const bInfo = b.item_name ? {
+        name: b.item_name,
+        rarity: b.rarity as ItemRarity || ItemRarity.Common
+      } : getItemInfo(b.item_id);
+
+      switch (sortBy) {
+        case 'name':
+          return aInfo.name.localeCompare(bInfo.name);
+        case 'value':
+          const aValue = parseFloat(a.acquired_price) * a.quantity;
+          const bValue = parseFloat(b.acquired_price) * b.quantity;
+          return bValue - aValue;
+        case 'quantity':
+          return b.quantity - a.quantity;
+        case 'acquired':
+          return new Date(b.acquired_at).getTime() - new Date(a.acquired_at).getTime();
+        default:
+          return 0;
+      }
+    });
+
+    return items;
+  }, [inventory.items, searchQuery, selectedCategory, selectedRarity, sortBy]);
+
+  // Get unique categories and rarities for filters
+  const { categories, rarities } = useMemo(() => {
+    const categorySet = new Set<string>();
+    const raritySet = new Set<string>();
+
+    inventory.items.forEach(item => {
+      const info = item.item_name ? {
+        category: item.category || 'Raw Material',
+        rarity: item.rarity || 'common'
+      } : getItemInfo(item.item_id);
+      
+      categorySet.add(info.category as string);
+      raritySet.add(info.rarity as string);
+    });
+
+    return {
+      categories: Array.from(categorySet).sort(),
+      rarities: Array.from(raritySet).sort((a, b) => {
+        const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+        return rarityOrder.indexOf(a) - rarityOrder.indexOf(b);
+      })
+    };
+  }, [inventory.items]);
+
   return (
     <div className="card" data-inventory-section>
       <div className="flex items-center justify-between mb-4">
@@ -172,6 +272,120 @@ function CharacterInventoryDisplay({
             <span className="text-dynasty-400">{calculateTotalValue().toLocaleString()}</span>
           </div>
         </div>
+      </div>
+
+      {/* Search and Filter Bar */}
+      <div className="mb-4 space-y-3">
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search items..."
+              className="w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-dynasty-500"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-4 py-2 rounded-lg border transition-colors flex items-center gap-2 ${
+              showFilters 
+                ? 'bg-dynasty-500 border-dynasty-500 text-white' 
+                : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-slate-500'
+            }`}
+          >
+            <FunnelIcon className="h-5 w-5" />
+            Filters
+            {(selectedCategory !== 'all' || selectedRarity !== 'all') && (
+              <span className="bg-dynasty-600 text-white text-xs px-2 py-0.5 rounded-full">
+                {[selectedCategory !== 'all', selectedRarity !== 'all'].filter(Boolean).length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Expanded Filters */}
+        {showFilters && (
+          <div className="bg-slate-700 rounded-lg p-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <TagIcon className="inline h-4 w-4 mr-1" />
+                  Category
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-dynasty-500"
+                >
+                  <option value="all">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Rarity Filter */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <SparklesIcon className="inline h-4 w-4 mr-1" />
+                  Rarity
+                </label>
+                <select
+                  value={selectedRarity}
+                  onChange={(e) => setSelectedRarity(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-dynasty-500"
+                >
+                  <option value="all">All Rarities</option>
+                  {rarities.map(rarity => (
+                    <option key={rarity} value={rarity}>
+                      {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Sort By */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <ChartBarIcon className="inline h-4 w-4 mr-1" />
+                  Sort By
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-dynasty-500"
+                >
+                  <option value="name">Name</option>
+                  <option value="value">Total Value</option>
+                  <option value="quantity">Quantity</option>
+                  <option value="acquired">Recently Acquired</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Results Summary */}
+            <div className="text-sm text-slate-400 pt-2 border-t border-slate-600">
+              Showing {filteredAndSortedItems.length} of {inventory.items.length} items
+              {(selectedCategory !== 'all' || selectedRarity !== 'all' || searchQuery) && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('all');
+                    setSelectedRarity('all');
+                  }}
+                  className="ml-2 text-dynasty-400 hover:text-dynasty-300"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Capacity Bar */}
@@ -191,9 +405,15 @@ function CharacterInventoryDisplay({
           <h3 className="mt-2 text-sm font-medium text-white">Empty Inventory</h3>
           <p className="mt-1 text-sm text-slate-400">Purchase items from the market to fill your inventory</p>
         </div>
+      ) : filteredAndSortedItems.length === 0 ? (
+        <div className="text-center py-8">
+          <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-slate-400" />
+          <h3 className="mt-2 text-sm font-medium text-white">No items found</h3>
+          <p className="mt-1 text-sm text-slate-400">Try adjusting your search or filters</p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {inventory.items.map((inventoryItem) => {
+          {filteredAndSortedItems.map((inventoryItem) => {
             const itemInfo = inventoryItem.item_name ? {
               name: inventoryItem.item_name,
               description: inventoryItem.item_description || 'A valuable trade good',

@@ -88,12 +88,24 @@ export default function MarketPage() {
     }
   }, [livingCharacters, selectedCharacterId]);
 
-  // Set default selected region
+  // Set default selected region based on character's location
   useEffect(() => {
-    if (!selectedRegion && regions.length > 0) {
+    if (!selectedRegion && regions.length > 0 && activeCharacter) {
+      // Try to find the region matching the character's location
+      if (activeCharacter.location_id) {
+        const characterRegion = regions.find(r => r.id === activeCharacter.location_id);
+        if (characterRegion) {
+          setSelectedRegion(characterRegion);
+          return;
+        }
+      }
+      // Fallback to first region if character has no location or region not found
+      setSelectedRegion(regions[0]);
+    } else if (!selectedRegion && regions.length > 0 && !activeCharacter) {
+      // If no character, just use first region
       setSelectedRegion(regions[0]);
     }
-  }, [regions, selectedRegion]);
+  }, [regions, selectedRegion, activeCharacter]);
 
   // Subscribe to market updates for selected region
   useEffect(() => {
@@ -208,6 +220,15 @@ export default function MarketPage() {
                     onChange={(e) => {
                       setSelectedCharacterId(e.target.value);
                       useCharacterStore.getState().setSelectedCharacterId(e.target.value);
+                      
+                      // Update region to match new character's location
+                      const newCharacter = characters.find(c => c.id === e.target.value);
+                      if (newCharacter?.location_id && regions.length > 0) {
+                        const newRegion = regions.find(r => r.id === newCharacter.location_id);
+                        if (newRegion) {
+                          setSelectedRegion(newRegion);
+                        }
+                      }
                     }}
                     className="input py-1 px-3 text-sm min-w-[150px]"
                   >
@@ -269,7 +290,11 @@ export default function MarketPage() {
                 <option value="">Choose a region...</option>
                 {regions.map((region) => (
                   <option key={region.id} value={region.id}>
-                    {region.is_capital ? '🏛️ ' : ''}{region.name} (Safety: {region.safety_level}%, Prosperity: {region.prosperity_level}%)
+                    {region.is_capital ? '🏛️ ' : ''}
+                    {activeCharacter?.location_id === region.id ? '📍 ' : ''}
+                    {region.name} 
+                    {activeCharacter?.location_id === region.id ? ' (Current Location)' : ''} 
+                    (Safety: {region.safety_level}%, Prosperity: {region.prosperity_level}%)
                   </option>
                 ))}
               </select>
@@ -278,7 +303,13 @@ export default function MarketPage() {
                 <div className="mt-4 p-3 bg-slate-700 rounded-lg">
                   <p className="font-medium text-white flex items-center">
                     {selectedRegion.is_capital && <BuildingStorefrontIcon className="h-4 w-4 mr-1 text-dynasty-400" />}
+                    {activeCharacter?.location_id === selectedRegion.id && <MapPinIcon className="h-4 w-4 mr-1 text-green-400" />}
                     {selectedRegion.name}
+                    {activeCharacter?.location_id === selectedRegion.id && (
+                      <span className="ml-2 text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded">
+                        Current Location
+                      </span>
+                    )}
                   </p>
                   <p className="text-sm text-slate-400 mt-1">{selectedRegion.description}</p>
                   <div className="grid grid-cols-2 gap-2 mt-2 text-sm">

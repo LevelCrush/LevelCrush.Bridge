@@ -17,12 +17,12 @@ import {
   TrendingUp, 
   TrendingDown, 
   Activity, 
-  BarChart3, 
-  Candlestick,
+  BarChart3,
   Eye,
   Settings,
   Maximize2
 } from 'lucide-react';
+import { ChartBarIcon as CandlestickIconIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 
 export interface PricePoint {
@@ -79,7 +79,7 @@ const timeFrameOptions: { value: TimeFrame; label: string; interval: string }[] 
 
 const chartTypeOptions: { value: ChartType; label: string; icon: React.ReactNode }[] = [
   { value: 'area', label: 'Area', icon: <Activity className="w-4 h-4" /> },
-  { value: 'candlestick', label: 'Candlestick', icon: <BarChart3 className="w-4 h-4" /> },
+  { value: 'candlestick', label: 'CandlestickIcon', icon: <BarChart3 className="w-4 h-4" /> },
   { value: 'line', label: 'Line', icon: <TrendingUp className="w-4 h-4" /> },
 ];
 
@@ -226,7 +226,7 @@ export function EnhancedPriceChart({
   };
 
   // Render candlestick chart
-  const renderCandlestickChart = () => (
+  const renderCandlestickIconChart = () => (
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -244,7 +244,7 @@ export function EnhancedPriceChart({
         />
         <Tooltip content={<CustomTooltip />} />
         
-        {/* Candlestick bars */}
+        {/* CandlestickIcon bars */}
         {chartData.map((point, index) => (
           <ReferenceLine
             key={index}
@@ -531,7 +531,7 @@ export function EnhancedPriceChart({
         ) : (
           <>
             {chartType === 'area' && renderAreaChart()}
-            {chartType === 'candlestick' && renderCandlestickChart()}
+            {chartType === 'candlestick' && renderCandlestickIconChart()}
             {chartType === 'line' && (
               <ResponsiveContainer width="100%" height={height}>
                 <ComposedChart data={chartData}>

@@ -104,15 +104,23 @@ export default function MarketAnalyticsDashboard() {
   const marketSentiment = useMemo(() => {
     if (!marketOverview) return 'neutral';
     
-    const priceChange = parseFloat(marketOverview.price_change_percent);
+    const priceChange = typeof marketOverview.price_change_percent === 'string' 
+      ? parseFloat(marketOverview.price_change_percent) 
+      : marketOverview.price_change_percent;
     if (priceChange > 2) return 'bullish';
     if (priceChange < -2) return 'bearish';
     return 'neutral';
   }, [marketOverview]);
 
+  // Safely convert to number
+  const toNumber = (value: number | string | undefined | null): number => {
+    if (value === undefined || value === null) return 0;
+    return typeof value === 'string' ? parseFloat(value) : value;
+  };
+
   // Format currency
   const formatCurrency = (amount: number | string) => {
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    const numAmount = toNumber(amount);
     if (isNaN(numAmount)) return '0';
     if (numAmount >= 1000000) return `${(numAmount / 1000000).toFixed(1)}M`;
     if (numAmount >= 1000) return `${(numAmount / 1000).toFixed(1)}K`;
@@ -121,7 +129,7 @@ export default function MarketAnalyticsDashboard() {
 
   // Format percentage
   const formatPercent = (percent: number | string) => {
-    const numPercent = typeof percent === 'string' ? parseFloat(percent) : percent;
+    const numPercent = toNumber(percent);
     if (isNaN(numPercent)) return '0.00%';
     const sign = numPercent >= 0 ? '+' : '';
     return `${sign}${numPercent.toFixed(2)}%`;
@@ -211,9 +219,9 @@ export default function MarketAnalyticsDashboard() {
                   {stat.change !== null && (
                     <div className={cn(
                       "flex items-center gap-1 mt-2 text-sm",
-                      parseFloat(stat.change) >= 0 ? "text-green-400" : "text-red-400"
+                      toNumber(stat.change) >= 0 ? "text-green-400" : "text-red-400"
                     )}>
-                      {parseFloat(stat.change) >= 0 ? (
+                      {toNumber(stat.change) >= 0 ? (
                         <ArrowUpRight className="w-4 h-4" />
                       ) : (
                         <ArrowDownRight className="w-4 h-4" />
@@ -282,8 +290,8 @@ export default function MarketAnalyticsDashboard() {
                       <p className="text-xs text-slate-400">{formatCurrency(item.volume_24h)} vol</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-mono text-white">{parseFloat(item.current_price).toFixed(2)}</p>
-                      <p className="text-xs text-green-400">+{parseFloat(item.price_change_percent).toFixed(1)}%</p>
+                      <p className="text-sm font-mono text-white">{toNumber(item.current_price).toFixed(2)}</p>
+                      <p className="text-xs text-green-400">+{toNumber(item.price_change_percent).toFixed(1)}%</p>
                     </div>
                   </div>
                 )) || <LoadingSkeleton className="h-16" />}
@@ -301,8 +309,8 @@ export default function MarketAnalyticsDashboard() {
                       <p className="text-xs text-slate-400">{formatCurrency(item.volume_24h)} vol</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-mono text-white">{parseFloat(item.current_price).toFixed(2)}</p>
-                      <p className="text-xs text-red-400">{parseFloat(item.price_change_percent).toFixed(1)}%</p>
+                      <p className="text-sm font-mono text-white">{toNumber(item.current_price).toFixed(2)}</p>
+                      <p className="text-xs text-red-400">{toNumber(item.price_change_percent).toFixed(1)}%</p>
                     </div>
                   </div>
                 )) || <LoadingSkeleton className="h-16" />}
@@ -326,21 +334,21 @@ export default function MarketAnalyticsDashboard() {
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-medium text-white">{opportunity.item_name}</p>
                     <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
-                      {parseFloat(opportunity.profit_margin).toFixed(1)}% profit
+                      {toNumber(opportunity.profit_margin).toFixed(1)}% profit
                     </span>
                   </div>
                   <div className="text-xs text-slate-400 space-y-1">
                     <div className="flex justify-between">
                       <span>Buy in {opportunity.buy_region_name}:</span>
-                      <span className="text-white">{parseFloat(opportunity.buy_price).toFixed(2)}</span>
+                      <span className="text-white">{toNumber(opportunity.buy_price).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Sell in {opportunity.sell_region_name}:</span>
-                      <span className="text-white">{parseFloat(opportunity.sell_price).toFixed(2)}</span>
+                      <span className="text-white">{toNumber(opportunity.sell_price).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between border-t border-slate-600 pt-1">
                       <span>Profit after taxes:</span>
-                      <span className="text-green-400 font-medium">+{parseFloat(opportunity.profit_after_taxes).toFixed(2)}</span>
+                      <span className="text-green-400 font-medium">+{toNumber(opportunity.profit_after_taxes).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -366,10 +374,10 @@ export default function MarketAnalyticsDashboard() {
                     <p className="text-xs text-slate-400">{formatCurrency(item.volume_24h)} vol</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-mono text-white">{parseFloat(item.current_price).toFixed(2)}</p>
+                    <p className="text-sm font-mono text-white">{toNumber(item.current_price).toFixed(2)}</p>
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-orange-400 rounded-full" />
-                      <span className="text-xs text-orange-400">{parseFloat(item.volatility).toFixed(1)}%</span>
+                      <span className="text-xs text-orange-400">{toNumber(item.volatility).toFixed(1)}%</span>
                     </div>
                   </div>
                 </div>
@@ -415,7 +423,7 @@ export default function MarketAnalyticsDashboard() {
                     <div className="flex justify-between">
                       <span>Price Change:</span>
                       <span className={cn(
-                        parseFloat(region.avg_price_change) >= 0 ? "text-green-400" : "text-red-400"
+                        toNumber(region.avg_price_change) >= 0 ? "text-green-400" : "text-red-400"
                       )}>
                         {formatPercent(region.avg_price_change)}
                       </span>

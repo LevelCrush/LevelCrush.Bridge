@@ -5,6 +5,7 @@ import {
   MarketStats, 
   MarketEvent,
   MarketPrice,
+  PriceHistoryPoint,
   CreateMarketListingRequest,
   PurchaseRequest 
 } from '@/types';
@@ -42,11 +43,11 @@ export const marketService = {
   },
 
   // Get price history for an item in a region
-  async getPriceHistory(regionId: string, itemId: string, days: number = 7): Promise<MarketPrice[]> {
-    const response = await api.get<{ history: MarketPrice[] }>(
-      `/market/regions/${regionId}/items/${itemId}/history?days=${days}`
+  async getPriceHistory(regionId: string, itemId: string, hours: number = 24): Promise<PriceHistoryPoint[]> {
+    const response = await api.get<{ price_history: PriceHistoryPoint[] }>(
+      `/market/regions/${regionId}/items/${itemId}/history?hours=${hours}`
     );
-    return response.history;
+    return response.price_history;
   },
 
   // Get recent market events

@@ -2,6 +2,55 @@
 
 All notable changes to the Dynasty Trader frontend will be documented in this file.
 
+## [0.4.0] - 2025-06-14
+
+### Added
+- **Character Inventory Management**
+  - Real-time search functionality by item name or description
+  - Category and rarity filters with visual indicators
+  - Sorting options (name, value, quantity, date acquired)
+  - Visual capacity tracking with progress bar and percentage
+  - Integrated sell interface launching modal directly from inventory
+  - Item cards showing rarity colors and category icons
+
+- **Sell Item Modal**
+  - Automatically defaults to character's current location
+  - Market analysis section with current prices and volume
+  - Real-time fee calculation showing tax and profit
+  - Visual warnings for expected losses
+  - Suggested pricing based on recent market data
+  - Listing duration options from 1 to 30 days
+
+- **Enhanced Transaction History**
+  - Advanced filtering system with multiple criteria
+  - Time range presets (24h, 7d, 30d, all time)
+  - Search across items, traders, and regions
+  - Financial dashboard with key metrics
+  - Expandable rows showing complete transaction details
+  - Visual indicators for buy/sell side
+
+- **Character Statistics Component**
+  - Multi-tab interface for comprehensive stats viewing
+  - Interactive radar chart using Recharts
+  - Skills & bonuses breakdown with percentage displays
+  - Life progression tracking with visual stages
+  - Dynamic calculations based on character attributes
+  - Support for both living and deceased characters
+
+- **Marketplace Location Awareness**
+  - Marketplace remembers and defaults to character location
+  - Visual map pin indicators throughout UI
+  - Dropdown shows "(Current Location)" for character's region
+  - Automatic region switching when changing characters
+  - Consistent location display across all pages
+
+### Technical Improvements
+- Created reusable Modal component with proper accessibility
+- Implemented memoization for expensive calculations
+- Added proper TypeScript types for all new components
+- Enhanced Zustand store with location tracking
+- Improved data fetching with proper dependencies
+
 ## [0.3.0] - 2025-06-14
 
 ### Added

@@ -1,42 +1,34 @@
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { marketService } from '@/services/market';
+import { characterService } from '@/services/character';
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
-import { MarketRegion, ItemCategory, ItemRarity } from '@/types';
+import { ItemCategory, ItemRarity, PriceHistoryPoint } from '@/types';
+import Modal from './Modal';
+import LoadingSkeleton from './LoadingSkeleton';
 import toast from 'react-hot-toast';
-import { FormField, Input } from '@/components/FormField';
-import { validatePrice, validateQuantity } from '@/utils/validation';
+import { 
+  CurrencyDollarIcon,
+  BuildingStorefrontIcon,
+  CalculatorIcon,
+  ExclamationTriangleIcon,
+  ChartBarIcon,
+  MapPinIcon
+} from '@heroicons/react/24/outline';
+import { cn } from '@/lib/utils';
 
 interface SellItemModalProps {
-  item: {
-    item_id: string;
-    item_name?: string;
-    item_description?: string;
-    category?: string;
-    rarity?: string;
-    quantity: number;
-    acquired_price: string;
-  };
+  item: any;
   characterId: string;
   onClose: () => void;
 }
 
 export default function SellItemModal({ item, characterId, onClose }: SellItemModalProps) {
-  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
-  const [price, setPrice] = useState<string>('');
-  const [quantity, setQuantity] = useState<number>(1);
-  const [errors, setErrors] = useState<{
-    region?: string;
-    price?: string;
-    quantity?: string;
-  }>({});
-  const [touched, setTouched] = useState<{
-    region?: boolean;
-    price?: boolean;
-    quantity?: boolean;
-  }>({});
   const queryClient = useQueryClient();
+  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
+  const [quantity, setQuantity] = useState(1);
+  const [pricePerUnit, setPricePerUnit] = useState('');
+  const [duration, setDuration] = useState(7); // days
 
   const itemInfo = item.item_name ? {
     name: item.item_name,
@@ -44,99 +36,90 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
     category: (item.category as ItemCategory) || ItemCategory.RawMaterial,
     rarity: (item.rarity as ItemRarity) || ItemRarity.Common
   } : getItemInfo(item.item_id);
-  const acquiredPrice = parseFloat(item.acquired_price);
 
   // Fetch regions
-  const { data: regions = [], isLoading: regionsLoading } = useQuery({
+  const { data: regions } = useQuery({
     queryKey: ['market', 'regions'],
     queryFn: marketService.getRegions,
   });
 
+  // Fetch character to get current location
+  const { data: character } = useQuery({
+    queryKey: ['character', characterId],
+    queryFn: () => characterService.getCharacter(characterId),
+  });
+
+  // Fetch market stats for price recommendation
+  const { data: marketStats } = useQuery({
+    queryKey: ['market', 'stats', selectedRegionId, item.item_id],
+    queryFn: () => marketService.getMarketStats(selectedRegionId),
+    enabled: !!selectedRegionId,
+  });
+
   // Create listing mutation
   const createListingMutation = useMutation({
-    mutationFn: marketService.createListing,
+    mutationFn: (listingData: any) => marketService.createListing(listingData),
     onSuccess: () => {
-      toast.success('Item listed successfully!');
       queryClient.invalidateQueries({ queryKey: ['character', characterId, 'inventory'] });
-      queryClient.invalidateQueries({ queryKey: ['market', 'listings'] });
+      queryClient.invalidateQueries({ queryKey: ['market'] });
+      toast.success('Item listed successfully!');
       onClose();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to create listing');
+      toast.error(error.message || 'Failed to create listing');
     },
   });
 
-  const validateForm = () => {
-    const newErrors: typeof errors = {};
-    
-    if (!selectedRegionId) {
-      newErrors.region = 'Please select a region';
+  // Get price history for the item in selected region
+  const { data: priceHistory } = useQuery({
+    queryKey: ['market', 'price-history', selectedRegionId, item.item_id],
+    queryFn: () => marketService.getPriceHistory(selectedRegionId, item.item_id),
+    enabled: !!selectedRegionId && !!item.item_id,
+  });
+
+  // Calculate suggested price based on market data
+  const suggestedPrice = useMemo(() => {
+    if (!priceHistory || priceHistory.length === 0) {
+      return parseFloat(item.acquired_price) * 1.2; // 20% markup by default
     }
     
-    const priceValidation = validatePrice(price);
-    if (!priceValidation.isValid) {
-      newErrors.price = priceValidation.error;
-    }
+    const recentPrices = priceHistory.slice(0, 10);
+    const avgPrice = recentPrices.reduce((sum, p) => sum + parseFloat(p.avg_price || '0'), 0) / recentPrices.length;
+    return Math.round(avgPrice * 100) / 100;
+  }, [priceHistory, item.acquired_price]);
+
+  // Calculate fees and profits
+  const calculateFees = () => {
+    const price = parseFloat(pricePerUnit) || 0;
+    const totalPrice = price * quantity;
+    const region = regions?.find(r => r.id === selectedRegionId);
+    const taxRate = parseFloat(region?.tax_rate || '0.1');
+    const taxAmount = totalPrice * taxRate;
+    const profit = totalPrice - taxAmount - (parseFloat(item.acquired_price) * quantity);
     
-    const quantityValidation = validateQuantity(quantity, item.quantity);
-    if (!quantityValidation.isValid) {
-      newErrors.quantity = quantityValidation.error;
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return {
+      totalPrice,
+      taxAmount,
+      profit,
+      taxRate: taxRate * 100,
+    };
   };
 
-  const handlePriceChange = (value: string) => {
-    // Allow only numbers and decimal point
-    if (value && !/^\d*\.?\d*$/.test(value)) {
+  const fees = calculateFees();
+
+  const handleCreateListing = () => {
+    if (!selectedRegionId) {
+      toast.error('Please select a region');
       return;
     }
-    setPrice(value);
-    
-    // Clear error when user starts typing
-    if (touched.price && errors.price) {
-      setErrors(prev => ({ ...prev, price: undefined }));
-    }
-  };
 
-  const handleQuantityChange = (value: number) => {
-    setQuantity(value);
-    
-    // Clear error when user changes value
-    if (touched.quantity && errors.quantity) {
-      setErrors(prev => ({ ...prev, quantity: undefined }));
+    if (!pricePerUnit || parseFloat(pricePerUnit) <= 0) {
+      toast.error('Please enter a valid price');
+      return;
     }
-  };
 
-  const handleRegionChange = (value: string) => {
-    setSelectedRegionId(value);
-    
-    // Clear error when user selects region
-    if (touched.region && errors.region) {
-      setErrors(prev => ({ ...prev, region: undefined }));
-    }
-  };
-
-  const handleBlur = (field: 'price' | 'quantity' | 'region') => {
-    setTouched({ ...touched, [field]: true });
-    
-    if (field === 'price') {
-      const validation = validatePrice(price);
-      setErrors(prev => ({ ...prev, price: validation.error }));
-    } else if (field === 'quantity') {
-      const validation = validateQuantity(quantity, item.quantity);
-      setErrors(prev => ({ ...prev, quantity: validation.error }));
-    } else if (field === 'region' && !selectedRegionId) {
-      setErrors(prev => ({ ...prev, region: 'Please select a region' }));
-    }
-  };
-
-  const handleSubmit = () => {
-    // Mark all fields as touched
-    setTouched({ region: true, price: true, quantity: true });
-    
-    if (!validateForm()) {
+    if (quantity <= 0 || quantity > item.quantity) {
+      toast.error('Invalid quantity');
       return;
     }
 
@@ -144,179 +127,229 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
       character_id: characterId,
       region_id: selectedRegionId,
       item_id: item.item_id,
-      price: price,
-      quantity: quantity,
-      expires_in_hours: 48, // Default 48 hours
+      quantity,
+      price: parseFloat(pricePerUnit),
+      expires_in_days: duration,
     });
   };
 
-  // Calculate profit/loss percentage
-  const calculateProfitLoss = () => {
-    if (!price) return null;
-    const sellPrice = parseFloat(price);
-    const diff = sellPrice - acquiredPrice;
-    const percentage = (diff / acquiredPrice) * 100;
-    return { diff, percentage };
-  };
+  // Set initial region to character's location
+  useEffect(() => {
+    if (character?.location_id && !selectedRegionId) {
+      setSelectedRegionId(character.location_id);
+    }
+  }, [character?.location_id, selectedRegionId]);
 
-  const profitLoss = calculateProfitLoss();
+  // Set suggested price when it's calculated
+  useEffect(() => {
+    if (suggestedPrice && !pricePerUnit) {
+      setPricePerUnit(suggestedPrice.toString());
+    }
+  }, [suggestedPrice, pricePerUnit]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-slate-800 rounded-lg max-w-md w-full">
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white">Sell Item</h2>
-            <button
-              onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              <XMarkIcon className="h-6 w-6" />
-            </button>
-          </div>
-
-          {/* Item Info */}
-          <div className="bg-slate-700 rounded-lg p-4 mb-4">
-            <div className="flex items-center mb-2">
-              <span className="text-2xl mr-2">{getCategoryIcon(itemInfo.category)}</span>
-              <div className="flex-1">
-                <h3 className={`font-medium ${getRarityColor(itemInfo.rarity)}`}>
-                  {itemInfo.name}
-                </h3>
-                <p className="text-sm text-slate-400">{itemInfo.description}</p>
+    <Modal
+      isOpen={true}
+      onClose={onClose}
+      title="Sell Item on Market"
+      className="max-w-2xl"
+    >
+      <div className="space-y-6">
+        {/* Item Info */}
+        <div className="bg-slate-700 rounded-lg p-4">
+          <div className="flex items-start">
+            <span className="text-2xl mr-3">{getCategoryIcon(itemInfo.category)}</span>
+            <div className="flex-1">
+              <h3 className={`text-lg font-medium ${getRarityColor(itemInfo.rarity)}`}>
+                {itemInfo.name}
+              </h3>
+              <p className="text-sm text-slate-400 mt-1">{itemInfo.description}</p>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <span className="text-slate-400">
+                  Available: <span className="text-white font-medium">{item.quantity}</span>
+                </span>
+                <span className="text-slate-400">
+                  Acquired at: <span className="text-white font-medium">{parseFloat(item.acquired_price).toFixed(2)} gold/unit</span>
+                </span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-sm mt-3">
-              <div>
-                <span className="text-slate-400">Available:</span>
-                <span className="ml-2 text-white">{item.quantity}</span>
-              </div>
-              <div>
-                <span className="text-slate-400">Acquired at:</span>
-                <span className="ml-2 text-white">{acquiredPrice.toFixed(2)} gold</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Region Selection */}
-          <FormField
-            label="Select Market Region"
-            error={touched.region ? errors.region : undefined}
-            required
-          >
-            {regionsLoading ? (
-              <div className="animate-pulse bg-slate-700 h-10 rounded"></div>
-            ) : (
-              <select
-                value={selectedRegionId}
-                onChange={(e) => handleRegionChange(e.target.value)}
-                onBlur={() => handleBlur('region')}
-                className={`input ${touched.region && errors.region ? 'border-red-500' : ''}`}
-              >
-                <option value="">Choose a region...</option>
-                {regions.map((region) => (
-                  <option key={region.id} value={region.id}>
-                    {region.name} (Tax: {parseFloat(region.tax_rate)}%)
-                  </option>
-                ))}
-              </select>
-            )}
-          </FormField>
-
-          {/* Price Input */}
-          <FormField
-            label="Price per unit (gold)"
-            error={touched.price ? errors.price : undefined}
-            required
-          >
-            <Input
-              type="text"
-              value={price}
-              onChange={(e) => handlePriceChange(e.target.value)}
-              onBlur={() => handleBlur('price')}
-              placeholder="Enter price..."
-              error={touched.price && !!errors.price}
-            />
-            {profitLoss && !errors.price && (
-              <div className="mt-1 text-sm">
-                {profitLoss.diff >= 0 ? (
-                  <span className="text-green-400">
-                    +{profitLoss.diff.toFixed(2)} gold ({profitLoss.percentage.toFixed(1)}% profit)
-                  </span>
-                ) : (
-                  <span className="text-red-400">
-                    {profitLoss.diff.toFixed(2)} gold ({profitLoss.percentage.toFixed(1)}% loss)
-                  </span>
-                )}
-              </div>
-            )}
-          </FormField>
-
-          {/* Quantity Input */}
-          <FormField
-            label="Quantity"
-            error={touched.quantity ? errors.quantity : undefined}
-            required
-          >
-            <Input
-              type="number"
-              min="1"
-              max={item.quantity}
-              value={quantity}
-              onChange={(e) => handleQuantityChange(Math.max(1, Math.min(item.quantity, parseInt(e.target.value) || 1)))}
-              onBlur={() => handleBlur('quantity')}
-              error={touched.quantity && !!errors.quantity}
-            />
-            <p className="text-xs text-gray-400 mt-1">Max available: {item.quantity}</p>
-          </FormField>
-
-          {/* Summary */}
-          {price && quantity > 0 && selectedRegionId && (
-            <div className="bg-slate-700 rounded-lg p-4 mb-4">
-              <h4 className="text-sm font-medium text-white mb-2">Listing Summary</h4>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Total Revenue:</span>
-                  <span className="text-white">{(parseFloat(price) * quantity).toFixed(2)} gold</span>
-                </div>
-                {selectedRegionId && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Market Tax:</span>
-                    <span className="text-red-400">
-                      -{(parseFloat(price) * quantity * parseFloat(regions.find(r => r.id === selectedRegionId)?.tax_rate || '0') / 100).toFixed(2)} gold
-                    </span>
-                  </div>
-                )}
-                <div className="border-t border-slate-600 pt-1 mt-1">
-                  <div className="flex justify-between">
-                    <span className="font-medium text-white">Net Profit:</span>
-                    <span className="text-dynasty-400 font-bold">
-                      {(parseFloat(price) * quantity * (1 - parseFloat(regions.find(r => r.id === selectedRegionId)?.tax_rate || '0') / 100)).toFixed(2)} gold
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex space-x-3">
-            <button
-              onClick={handleSubmit}
-              disabled={createListingMutation.isPending || Object.keys(errors).length > 0}
-              className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {createListingMutation.isPending ? 'Creating...' : 'Create Listing'}
-            </button>
-            <button
-              onClick={onClose}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
           </div>
         </div>
+
+        {/* Listing Details */}
+        <div className="space-y-4">
+          {/* Region Selection */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              <MapPinIcon className="inline h-4 w-4 mr-1" />
+              Market Region
+            </label>
+            <select
+              value={selectedRegionId}
+              onChange={(e) => setSelectedRegionId(e.target.value)}
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-dynasty-500"
+            >
+              <option value="">Select a region</option>
+              {regions?.map(region => (
+                <option key={region.id} value={region.id}>
+                  {region.name} (Tax: {(parseFloat(region.tax_rate) * 100).toFixed(0)}%)
+                  {character?.location_id === region.id && ' - Current Location'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Quantity and Price */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Quantity
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={item.quantity}
+                value={quantity}
+                onChange={(e) => setQuantity(Math.min(parseInt(e.target.value) || 1, item.quantity))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-dynasty-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Price per Unit (Gold)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={pricePerUnit}
+                onChange={(e) => setPricePerUnit(e.target.value)}
+                placeholder={suggestedPrice ? `Suggested: ${suggestedPrice}` : 'Enter price'}
+                className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-dynasty-500"
+              />
+            </div>
+          </div>
+
+          {/* Duration */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2">
+              Listing Duration
+            </label>
+            <select
+              value={duration}
+              onChange={(e) => setDuration(parseInt(e.target.value))}
+              className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-dynasty-500"
+            >
+              <option value={1}>1 Day</option>
+              <option value={3}>3 Days</option>
+              <option value={7}>7 Days</option>
+              <option value={14}>14 Days</option>
+              <option value={30}>30 Days</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Market Analysis */}
+        {selectedRegionId && priceHistory && priceHistory.length > 0 && (
+          <div className="bg-slate-700 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-white mb-3 flex items-center">
+              <ChartBarIcon className="h-4 w-4 mr-2" />
+              Market Analysis
+            </h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-slate-400">Current Market Price</span>
+                <p className="text-white font-medium">
+                  {priceHistory[0] ? parseFloat(priceHistory[0].avg_price).toFixed(2) : '0.00'} gold
+                </p>
+              </div>
+              <div>
+                <span className="text-slate-400">24h Change</span>
+                <p className={cn(
+                  "font-medium",
+                  "text-slate-400"
+                )}>
+                  N/A
+                </p>
+              </div>
+              <div>
+                <span className="text-slate-400">Active Listings</span>
+                <p className="text-white font-medium">
+                  {marketStats?.total_listings || 0}
+                </p>
+              </div>
+              <div>
+                <span className="text-slate-400">24h Volume</span>
+                <p className="text-white font-medium">
+                  {parseFloat(marketStats?.total_volume_24h || '0').toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Fee Calculation */}
+        <div className="bg-slate-800 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-white mb-3 flex items-center">
+            <CalculatorIcon className="h-4 w-4 mr-2" />
+            Fee Calculation
+          </h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-400">Total Price</span>
+              <span className="text-white font-medium">{fees.totalPrice.toFixed(2)} gold</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400">Market Tax ({fees.taxRate.toFixed(0)}%)</span>
+              <span className="text-red-400">-{fees.taxAmount.toFixed(2)} gold</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400">Cost Basis</span>
+              <span className="text-slate-400">-{(parseFloat(item.acquired_price) * quantity).toFixed(2)} gold</span>
+            </div>
+            <div className="flex justify-between pt-2 border-t border-slate-700">
+              <span className="text-white font-medium">Expected Profit</span>
+              <span className={cn(
+                "font-bold",
+                fees.profit >= 0 ? "text-green-400" : "text-red-400"
+              )}>
+                {fees.profit >= 0 ? '+' : ''}{fees.profit.toFixed(2)} gold
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Warning for losses */}
+        {fees.profit < 0 && (
+          <div className="bg-red-900/20 border border-red-500 rounded-lg p-3 flex items-start">
+            <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="text-red-400 font-medium">Warning: Expected Loss</p>
+              <p className="text-red-300 mt-1">
+                This listing will result in a loss of {Math.abs(fees.profit).toFixed(2)} gold.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="btn-secondary"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleCreateListing}
+            disabled={createListingMutation.isPending || !selectedRegionId || !pricePerUnit}
+            className="btn-primary flex items-center gap-2"
+          >
+            <BuildingStorefrontIcon className="h-5 w-5" />
+            {createListingMutation.isPending ? 'Creating...' : 'Create Listing'}
+          </button>
+        </div>
       </div>
-    </div>
+    </Modal>
   );
 }
