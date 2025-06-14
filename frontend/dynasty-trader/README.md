@@ -18,6 +18,11 @@ A React-based Progressive Web App (PWA) for Dynasty Trader - a roguelike economy
   - Filter by category (Food, Equipment, Raw Material, Luxury, Textile)
   - View transaction history with profit/loss tracking
 - **Inventory Management**: View items, sell to market, track values
+- **Death & Inheritance System**:
+  - Real-time death notifications with market impact
+  - Detailed inheritance flow for your characters
+  - Death tax calculations and heir distribution
+  - Recent deaths tracking across all dynasties
 - **Real-time Updates**: WebSocket integration for live market data and death notifications
 
 ### UI/UX Features

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Death Notifications & Inheritance UI (2025-06-14)
+
+#### Added
+- **Death Event System**
+  - Real-time death notifications through WebSocket integration
+  - Enhanced notification cards showing character details and market impact
+  - Differentiated handling for user's own characters vs other players
+  - Auto-dismissing notifications with 10-second timeout
+  
+- **Inheritance Flow Visualization**
+  - Detailed inheritance modal for user's character deaths
+  - Animated step-by-step wealth distribution display
+  - Death tax visualization (10% of total wealth)
+  - Heir allocation showing who receives inheritance
+  - Dynasty treasury contributions for childless characters
+  
+- **Recent Deaths Page**
+  - New page tracking all character deaths across dynasties
+  - 7-day statistics showing total deaths and wealth lost
+  - Ghost listings counter showing posthumous market activity
+  - Sortable list with death details and market impacts
+  - Real-time updates every 30 seconds
+  
+- **Market Impact Display**
+  - Shows affected regions when wealthy characters die
+  - Ghost listing counter for estate liquidation
+  - Visual indicators for market shocks
+
+- **Technical Improvements**
+  - Death event manager service for centralized handling
+  - Character death listener hook for automatic data refresh
+  - Currency and time formatting utilities
+  - Framer-motion integration for smooth animations
+  - Lucide-react for consistent death-themed icons
+
 ### Recent Improvements (2025-06-14)
 
 #### Added

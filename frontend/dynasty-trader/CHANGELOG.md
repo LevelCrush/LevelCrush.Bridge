@@ -2,6 +2,27 @@
 
 All notable changes to the Dynasty Trader frontend will be documented in this file.
 
+## [0.3.0] - 2025-06-14
+
+### Added
+- **Death Notifications & Inheritance UI**
+  - Real-time death notifications via WebSocket
+  - Enhanced death notification cards with market impact info
+  - Detailed inheritance modal for user's own character deaths
+  - Shows wealth distribution, death tax (10%), and heir allocation
+  - Market impact visualization (affected regions, ghost listings)
+  - Recent Deaths page tracking fallen characters across dynasties
+  - Death event manager differentiating user vs other player deaths
+  - Character death listener hook for automatic data refresh
+  - Formatting utilities for currency and relative time display
+
+- **UI/UX Improvements**
+  - Added framer-motion for smooth modal animations
+  - Integrated lucide-react for consistent iconography
+  - Death notifications auto-dismiss after 10 seconds
+  - Inheritance modal with step-by-step animation
+  - Recent deaths statistics with 7-day tracking
+
 ## [0.2.0] - 2025-06-14
 
 ### Added
