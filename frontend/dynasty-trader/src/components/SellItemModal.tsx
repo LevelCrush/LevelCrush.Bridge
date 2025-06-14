@@ -5,6 +5,8 @@ import { marketService } from '@/services/market';
 import { getItemInfo, getRarityColor, getCategoryIcon } from '@/data/mockItems';
 import { MarketRegion, ItemCategory, ItemRarity } from '@/types';
 import toast from 'react-hot-toast';
+import { FormField, Input } from '@/components/FormField';
+import { validatePrice, validateQuantity } from '@/utils/validation';
 
 interface SellItemModalProps {
   item: {
@@ -24,6 +26,16 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
   const [selectedRegionId, setSelectedRegionId] = useState<string>('');
   const [price, setPrice] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1);
+  const [errors, setErrors] = useState<{
+    region?: string;
+    price?: string;
+    quantity?: string;
+  }>({});
+  const [touched, setTouched] = useState<{
+    region?: boolean;
+    price?: boolean;
+    quantity?: boolean;
+  }>({});
   const queryClient = useQueryClient();
 
   const itemInfo = item.item_name ? {
@@ -54,17 +66,77 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
     },
   });
 
-  const handleSubmit = () => {
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    
     if (!selectedRegionId) {
-      toast.error('Please select a region');
+      newErrors.region = 'Please select a region';
+    }
+    
+    const priceValidation = validatePrice(price);
+    if (!priceValidation.isValid) {
+      newErrors.price = priceValidation.error;
+    }
+    
+    const quantityValidation = validateQuantity(quantity, item.quantity);
+    if (!quantityValidation.isValid) {
+      newErrors.quantity = quantityValidation.error;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePriceChange = (value: string) => {
+    // Allow only numbers and decimal point
+    if (value && !/^\d*\.?\d*$/.test(value)) {
       return;
     }
-    if (!price || parseFloat(price) <= 0) {
-      toast.error('Please enter a valid price');
-      return;
+    setPrice(value);
+    
+    // Clear error when user starts typing
+    if (touched.price && errors.price) {
+      setErrors(prev => ({ ...prev, price: undefined }));
     }
-    if (quantity <= 0 || quantity > item.quantity) {
-      toast.error('Invalid quantity');
+  };
+
+  const handleQuantityChange = (value: number) => {
+    setQuantity(value);
+    
+    // Clear error when user changes value
+    if (touched.quantity && errors.quantity) {
+      setErrors(prev => ({ ...prev, quantity: undefined }));
+    }
+  };
+
+  const handleRegionChange = (value: string) => {
+    setSelectedRegionId(value);
+    
+    // Clear error when user selects region
+    if (touched.region && errors.region) {
+      setErrors(prev => ({ ...prev, region: undefined }));
+    }
+  };
+
+  const handleBlur = (field: 'price' | 'quantity' | 'region') => {
+    setTouched({ ...touched, [field]: true });
+    
+    if (field === 'price') {
+      const validation = validatePrice(price);
+      setErrors(prev => ({ ...prev, price: validation.error }));
+    } else if (field === 'quantity') {
+      const validation = validateQuantity(quantity, item.quantity);
+      setErrors(prev => ({ ...prev, quantity: validation.error }));
+    } else if (field === 'region' && !selectedRegionId) {
+      setErrors(prev => ({ ...prev, region: 'Please select a region' }));
+    }
+  };
+
+  const handleSubmit = () => {
+    // Mark all fields as touched
+    setTouched({ region: true, price: true, quantity: true });
+    
+    if (!validateForm()) {
       return;
     }
 
@@ -127,15 +199,19 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
           </div>
 
           {/* Region Selection */}
-          <div className="mb-4">
-            <label className="label">Select Market Region</label>
+          <FormField
+            label="Select Market Region"
+            error={touched.region ? errors.region : undefined}
+            required
+          >
             {regionsLoading ? (
               <div className="animate-pulse bg-slate-700 h-10 rounded"></div>
             ) : (
               <select
                 value={selectedRegionId}
-                onChange={(e) => setSelectedRegionId(e.target.value)}
-                className="input"
+                onChange={(e) => handleRegionChange(e.target.value)}
+                onBlur={() => handleBlur('region')}
+                className={`input ${touched.region && errors.region ? 'border-red-500' : ''}`}
               >
                 <option value="">Choose a region...</option>
                 {regions.map((region) => (
@@ -145,21 +221,23 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
                 ))}
               </select>
             )}
-          </div>
+          </FormField>
 
           {/* Price Input */}
-          <div className="mb-4">
-            <label className="label">Price per unit (gold)</label>
-            <input
-              type="number"
-              min="0.01"
-              step="0.01"
+          <FormField
+            label="Price per unit (gold)"
+            error={touched.price ? errors.price : undefined}
+            required
+          >
+            <Input
+              type="text"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="input"
+              onChange={(e) => handlePriceChange(e.target.value)}
+              onBlur={() => handleBlur('price')}
               placeholder="Enter price..."
+              error={touched.price && !!errors.price}
             />
-            {profitLoss && (
+            {profitLoss && !errors.price && (
               <div className="mt-1 text-sm">
                 {profitLoss.diff >= 0 ? (
                   <span className="text-green-400">
@@ -172,20 +250,25 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
                 )}
               </div>
             )}
-          </div>
+          </FormField>
 
           {/* Quantity Input */}
-          <div className="mb-4">
-            <label className="label">Quantity</label>
-            <input
+          <FormField
+            label="Quantity"
+            error={touched.quantity ? errors.quantity : undefined}
+            required
+          >
+            <Input
               type="number"
               min="1"
               max={item.quantity}
               value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, Math.min(item.quantity, parseInt(e.target.value) || 1)))}
-              className="input"
+              onChange={(e) => handleQuantityChange(Math.max(1, Math.min(item.quantity, parseInt(e.target.value) || 1)))}
+              onBlur={() => handleBlur('quantity')}
+              error={touched.quantity && !!errors.quantity}
             />
-          </div>
+            <p className="text-xs text-gray-400 mt-1">Max available: {item.quantity}</p>
+          </FormField>
 
           {/* Summary */}
           {price && quantity > 0 && selectedRegionId && (
@@ -220,8 +303,8 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
           <div className="flex space-x-3">
             <button
               onClick={handleSubmit}
-              disabled={createListingMutation.isPending || !selectedRegionId || !price || quantity <= 0}
-              className="btn-primary flex-1"
+              disabled={createListingMutation.isPending || Object.keys(errors).length > 0}
+              className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {createListingMutation.isPending ? 'Creating...' : 'Create Listing'}
             </button>

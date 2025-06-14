@@ -30,6 +30,15 @@ All notable changes to the Dynasty Trader frontend will be documented in this fi
   - Character dropdown with accurate gold values
   - Region dropdown replacing button list
 
+- **Form Validation System**
+  - Created validation utility with comprehensive rules
+  - Real-time validation with visual feedback
+  - Field-level error messages below inputs
+  - Password strength indicator with suggestions
+  - Reusable FormField, Input, and Textarea components
+  - Enhanced validation for all forms in the app
+  - Disabled submit buttons when errors exist
+
 ### Fixed
 - **Frontend Type Definitions**
   - Updated ItemCategory enum to match backend capitalization
@@ -40,6 +49,11 @@ All notable changes to the Dynasty Trader frontend will be documented in this fi
   - Fixed marketplace not updating when navigating from character page
   - Character dropdown now reflects pre-selected character
   - Gold values display correctly in character selector
+
+- **Registration Clarity**
+  - Changed "Dynasty name" to "Username" for account creation
+  - Updated page titles and messaging for better flow
+  - Clarified account creation vs dynasty creation process
 
 ## [0.1.0] - 2025-06-13
 

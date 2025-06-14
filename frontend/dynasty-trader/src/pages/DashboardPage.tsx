@@ -8,6 +8,8 @@ import { Dynasty, Character } from '@/types';
 import toast from 'react-hot-toast';
 import { PlusIcon, UserGroupIcon, UserIcon, CurrencyDollarIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { CharacterCardSkeleton, StatCardSkeleton } from '@/components/LoadingSkeleton';
+import { FormField, Input, Textarea } from '@/components/FormField';
+import { validateName, validateMotto } from '@/utils/validation';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -16,6 +18,10 @@ export default function DashboardPage() {
   const [showCharacterModal, setShowCharacterModal] = useState(false);
   const [dynastyForm, setDynastyForm] = useState({ name: '', motto: '' });
   const [characterForm, setCharacterForm] = useState({ name: '' });
+  const [dynastyErrors, setDynastyErrors] = useState<{ name?: string; motto?: string }>({});
+  const [characterErrors, setCharacterErrors] = useState<{ name?: string }>({});
+  const [dynastyTouched, setDynastyTouched] = useState<{ name?: boolean; motto?: boolean }>({});
+  const [characterTouched, setCharacterTouched] = useState<{ name?: boolean }>({});
 
   // Fetch user's dynasty
   const { data: dynasty, isLoading: dynastyLoading } = useQuery({
@@ -57,6 +63,8 @@ export default function DashboardPage() {
       queryClient.setQueryData(['characters'], [...characters, newCharacter]);
       setShowCharacterModal(false);
       setCharacterForm({ name: '' });
+      setCharacterErrors({});
+      setCharacterTouched({});
       toast.success(`Character "${newCharacter.name}" created!`);
       navigate('/character');
     },
@@ -65,19 +73,93 @@ export default function DashboardPage() {
     },
   });
 
+  const validateDynastyForm = () => {
+    const errors: typeof dynastyErrors = {};
+    
+    const nameValidation = validateName(dynastyForm.name, 'Dynasty name');
+    if (!nameValidation.isValid) {
+      errors.name = nameValidation.error;
+    }
+    
+    const mottoValidation = validateMotto(dynastyForm.motto);
+    if (!mottoValidation.isValid) {
+      errors.motto = mottoValidation.error;
+    }
+    
+    setDynastyErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateCharacterForm = () => {
+    const errors: typeof characterErrors = {};
+    
+    const nameValidation = validateName(characterForm.name, 'Character name');
+    if (!nameValidation.isValid) {
+      errors.name = nameValidation.error;
+    }
+    
+    setCharacterErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleDynastyFieldChange = (field: 'name' | 'motto', value: string) => {
+    setDynastyForm({ ...dynastyForm, [field]: value });
+    
+    // Clear error when user starts typing
+    if (dynastyTouched[field] && dynastyErrors[field]) {
+      setDynastyErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handleCharacterFieldChange = (value: string) => {
+    setCharacterForm({ name: value });
+    
+    // Clear error when user starts typing
+    if (characterTouched.name && characterErrors.name) {
+      setCharacterErrors({ name: undefined });
+    }
+  };
+
+  const handleDynastyBlur = (field: 'name' | 'motto') => {
+    setDynastyTouched({ ...dynastyTouched, [field]: true });
+    
+    if (field === 'name') {
+      const validation = validateName(dynastyForm.name, 'Dynasty name');
+      setDynastyErrors(prev => ({ ...prev, name: validation.error }));
+    } else if (field === 'motto') {
+      const validation = validateMotto(dynastyForm.motto);
+      setDynastyErrors(prev => ({ ...prev, motto: validation.error }));
+    }
+  };
+
   const handleCreateDynasty = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Mark all fields as touched
+    setDynastyTouched({ name: true, motto: true });
+    
+    if (!validateDynastyForm()) {
+      return;
+    }
+    
     createDynastyMutation.mutate(dynastyForm);
   };
 
   const handleCreateCharacter = (e: React.FormEvent) => {
     e.preventDefault();
-    if (dynasty) {
-      createCharacterMutation.mutate({
-        dynasty_id: dynasty.id,
-        name: characterForm.name,
-      });
+    if (!dynasty) return;
+    
+    // Mark field as touched
+    setCharacterTouched({ name: true });
+    
+    if (!validateCharacterForm()) {
+      return;
     }
+    
+    createCharacterMutation.mutate({
+      dynasty_id: dynasty.id,
+      name: characterForm.name,
+    });
   };
 
   const livingCharacters = characters.filter(c => c.is_alive);

@@ -17,6 +17,8 @@ A revolutionary roguelike economy game where death drives markets and players bu
 - **Travel System**: Move characters between regions with visual feedback
 - **Category Filters**: Filter market listings by item type (Food, Equipment, etc.)
 - **Character Persistence**: Selected character persists across navigation
+- **Form Validation**: Real-time validation with field-level error messages
+- **Password Strength**: Visual indicator and suggestions for secure passwords
 - **Real-time Updates**: WebSocket integration for live market data
 - **Data Visualization**: Interactive price charts with Recharts
 - **Enhanced UX**: Loading skeletons, smooth animations, error handling

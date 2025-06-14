@@ -27,6 +27,8 @@ A React-based Progressive Web App (PWA) for Dynasty Trader - a roguelike economy
 - **Loading States**: Skeleton screens for smooth data loading
 - **Animations**: Smooth transitions and micro-interactions
 - **Data Visualization**: Interactive price charts using Recharts
+- **Form Validation**: Real-time validation with field-level errors
+- **Password Strength**: Visual indicator with security suggestions
 
 ## Tech Stack
 

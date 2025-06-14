@@ -303,6 +303,7 @@ This project is transitioning from a multi-game inventory bridge to a groundbrea
 - **Purchase database constraint error** - Fixed by setting is_active=false instead of quantity=0 when all items purchased
 - **Item names showing as hashes in purchase modal** - Fixed by using listing data instead of mock lookup
 - **Characters without locations** - Fixed by defaulting new characters to Capital City and migrating existing characters
+- **Confusing "Dynasty name" field on registration** - Updated to "Username" with clearer labels and messaging
 - **Category filter not working** - Fixed by updating ItemCategory enum to match database values (Food, Raw Material, Equipment, Luxury, Textile)
 - **Marketplace character dropdown not updating** - Fixed by implementing Zustand store to persist selected character across pages
 
@@ -321,3 +322,9 @@ This project is transitioning from a multi-game inventory bridge to a groundbrea
 - Loading skeletons for smooth UX
 - Death event toast notifications
 - Market item detail modal with purchase flow
+- Travel system allowing characters to move between regions
+- Working category filters in marketplace
+- Character state persistence across navigation
+- Comprehensive form validation with real-time feedback
+- Password strength indicator on registration
+- Field-level error messages for better UX

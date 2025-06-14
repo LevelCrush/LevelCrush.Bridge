@@ -35,6 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Character dropdown now shows accurate gold values
   - Region selection converted to dropdown for space efficiency
 
+- **Form Validation System**
+  - Created comprehensive validation utilities for all form inputs
+  - Added real-time validation with visual feedback
+  - Implemented field-level error messages below inputs
+  - Added password strength indicator with suggestions
+  - Created reusable FormField components with error states
+  - Enhanced all forms: Login, Register, Dynasty creation, Character creation, Sell item modal
+  - Form buttons disable when validation errors exist
+  - Errors clear automatically when users fix them
+
 #### Fixed
 - **Aging System Balance**
   - Fixed overly aggressive aging causing characters to die too young
@@ -46,6 +56,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed PWA service worker and manifest generation
   - Build output now includes proper icon files and manifest
   - Service worker correctly caches assets for offline support
+
+- **Registration Form Clarity**
+  - Changed confusing "Dynasty name" field to "Username" on registration
+  - Updated page titles from "Create your dynasty" to "Create your account"
+  - Clarified that users create accounts first, then dynasties after login
+  - Updated success messages and button text for consistency
 
 ### Bug Fixes and Improvements (2025-06-13)
 
