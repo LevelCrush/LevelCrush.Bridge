@@ -80,7 +80,7 @@ pub async fn get_recent_deaths(
         SELECT 
             de.id,
             c.name as character_name,
-            c.age as character_age,
+            EXTRACT(YEAR FROM AGE(COALESCE(c.death_date, de.death_date), c.birth_date))::INTEGER as character_age,
             d.name as dynasty_name,
             de.death_cause,
             COALESCE(de.wealth_at_death, 0) as character_wealth,
@@ -95,7 +95,7 @@ pub async fn get_recent_deaths(
             AND ml.listed_at >= de.death_date 
             AND ml.listed_at < de.death_date + INTERVAL '1 minute'
         WHERE de.death_date > CURRENT_TIMESTAMP - INTERVAL '7 days'
-        GROUP BY de.id, c.name, c.age, d.name, de.death_cause, 
+        GROUP BY de.id, c.name, c.birth_date, c.death_date, d.name, de.death_cause, 
                  de.wealth_at_death, de.market_impact_score, 
                  de.death_date
         ORDER BY de.death_date DESC
