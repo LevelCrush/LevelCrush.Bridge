@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Character Inventory Management UI (2025-06-14)
+
+#### Added
+- **Inventory Management Interface**
+  - Real-time search by item name or description
+  - Filter by category (Food, Equipment, Raw Material, Luxury, Textile) and rarity
+  - Sort options: name, value, quantity, acquisition date
+  - Visual capacity tracking with progress bar
+  - Detailed item information modals
+  - Sell interface with automatic region selection
+  
+- **Sell Item Modal**
+  - Defaults to character's current location
+  - Market analysis showing current prices and trends
+  - Fee calculation with tax preview
+  - Profit/loss warnings before listing
+  - Suggested pricing based on market data
+  - Configurable listing duration (1-30 days)
+  
+- **Enhanced Transaction History**
+  - Advanced filtering by transaction type (buy/sell)
+  - Time range filters (24h, 7d, 30d, all time)
+  - Search functionality for items, traders, and regions
+  - Financial statistics dashboard
+  - Shows total spent, earned, net profit, and taxes paid
+  - Expandable transaction details with full information
+  
+- **Character Statistics Display**
+  - Three-tab interface: Overview, Skills & Bonuses, Life Progress
+  - Interactive radar chart for attribute distribution
+  - Skill breakdown with trading bonuses
+  - Life expectancy calculations based on stats
+  - Stamina regeneration rate display
+  - Visual life stage progression
+  
+- **Marketplace Location Awareness**
+  - Marketplace defaults to character's current location
+  - Visual indicators showing where character is located
+  - Region dropdown highlights current location
+  - Character location updates when switching characters
+  - Seamless integration between character page and marketplace
+
+#### Technical Improvements
+- Created reusable Modal component for consistent UI
+- Added data memoization for performance
+- Implemented proper TypeScript interfaces for inventory items
+- Added location_id support throughout character components
+- Enhanced state management with character location tracking
+
 ### Death Notifications & Inheritance UI (2025-06-14)
 
 #### Added

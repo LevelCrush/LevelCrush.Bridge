@@ -99,11 +99,23 @@ npm run dev
 - [x] Market item detail modal
 - [x] Mobile-optimized UI
 - [x] PWA manifest and service worker
-- [x] Character inventory with sell functionality
-- [x] Transaction history with expandable details
+- [x] Character inventory management
+  - [x] Inventory display with capacity tracking
+  - [x] Search and filter functionality
+  - [x] Sell items on regional markets
+  - [x] Item details modal
+- [x] Enhanced transaction history
+  - [x] Advanced filtering (type, time range)
+  - [x] Financial statistics dashboard
+  - [x] Search by items, traders, regions
+- [x] Comprehensive character statistics
+  - [x] Stats overview with radar charts
+  - [x] Skills and bonuses breakdown
+  - [x] Life progression tracking
 - [x] Travel between regions
 - [x] Category filters with proper backend integration
 - [x] Character state persistence across pages
+- [x] Market location awareness (defaults to character location)
 
 ### Phase 5: Discord Bot (Upcoming)
 - [ ] OAuth2 integration
@@ -313,19 +325,32 @@ This project is transitioning from a multi-game inventory bridge to a groundbrea
 - Dynasty creation and management dashboard
 - Character creation with randomized stats (health, stamina, charisma, intelligence, luck)
 - Characters start with 500-1000 gold and begin in Capital City
-- Character location display with map pin indicators
+- Character location display with map pin indicators throughout the app
 - Market browsing with 8 unique regions (Capital City, Northern Mines, etc.)
-- Regional dropdown selection for easier navigation
-- Item inventory management with sell functionality
-- Transaction history with expandable details
+  - Marketplace defaults to character's current location
+  - Visual indicators showing character's location in region selector
+  - Automatic region switching when changing active character
+- Inventory Management System
+  - Real-time search and filtering by name, category, rarity
+  - Sorting options (name, value, quantity, acquisition date)
+  - Capacity tracking with visual indicators
+  - Sell items interface with market analysis
+  - Item details modal with full information
+- Enhanced Transaction History
+  - Advanced filtering by transaction type and time range
+  - Financial statistics (total spent/earned, net profit, taxes)
+  - Search functionality for items, traders, and regions
+  - Expandable transaction details
+- Character Statistics Display
+  - Overview tab with health/stamina bars and radar chart
+  - Skills & bonuses breakdown with bar charts
+  - Life progression tracking with age stages
+  - Stamina regeneration calculations
 - Real-time WebSocket updates for market changes
-- Interactive price charts using Recharts
+- Death event notifications with market impact display
+- Interactive price charts and market analytics
+- Travel system with visual feedback
 - Loading skeletons for smooth UX
-- Death event toast notifications
-- Market item detail modal with purchase flow
-- Travel system allowing characters to move between regions
-- Working category filters in marketplace
-- Character state persistence across navigation
 - Comprehensive form validation with real-time feedback
 - Password strength indicator on registration
 - Field-level error messages for better UX
