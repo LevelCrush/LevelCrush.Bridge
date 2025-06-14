@@ -35,7 +35,7 @@ impl DeathTask {
                                 "Character {} died of {} (wealth: {}, location: {})",
                                 event.character_id,
                                 event.death_cause,
-                                event.character_wealth,
+                                event.wealth_at_death,
                                 event.location_id
                             );
                         }

@@ -59,9 +59,9 @@ pub async fn kill_character(
             "character_id": death_event.character_id,
             "dynasty_id": death_event.dynasty_id,
             "death_cause": death_event.death_cause,
-            "character_wealth": death_event.character_wealth,
+            "character_wealth": death_event.wealth_at_death,
             "location_id": death_event.location_id,
-            "died_at": death_event.died_at,
+            "died_at": death_event.death_date,
         },
         "message": "Character has died. Their wealth has been added to the dynasty treasury."
     })))
@@ -73,7 +73,7 @@ pub async fn get_recent_deaths(
 ) -> Result<Json<Value>, AppError> {
     let deaths: Vec<(
         Uuid, String, i32, String, String, 
-        rust_decimal::Decimal, rust_decimal::Decimal, i32, 
+        rust_decimal::Decimal, i32, 
         chrono::DateTime<chrono::Utc>, i64
     )> = sqlx::query_as(
         r#"
@@ -83,23 +83,22 @@ pub async fn get_recent_deaths(
             c.age as character_age,
             d.name as dynasty_name,
             de.death_cause,
-            de.character_wealth,
-            de.net_inheritance,
-            de.market_events_created,
-            de.died_at,
+            COALESCE(de.wealth_at_death, 0) as character_wealth,
+            COALESCE(de.market_impact_score, 0) as market_events_created,
+            de.death_date,
             COUNT(DISTINCT ml.id) as ghost_listings
         FROM death_events de
         JOIN characters c ON de.character_id = c.id
         JOIN dynasties d ON de.dynasty_id = d.id
         LEFT JOIN market_listings ml ON ml.seller_character_id IS NULL 
             AND ml.is_ghost_listing = true 
-            AND ml.listed_at >= de.died_at 
-            AND ml.listed_at < de.died_at + INTERVAL '1 minute'
-        WHERE de.died_at > CURRENT_TIMESTAMP - INTERVAL '7 days'
+            AND ml.listed_at >= de.death_date 
+            AND ml.listed_at < de.death_date + INTERVAL '1 minute'
+        WHERE de.death_date > CURRENT_TIMESTAMP - INTERVAL '7 days'
         GROUP BY de.id, c.name, c.age, d.name, de.death_cause, 
-                 de.character_wealth, de.net_inheritance, 
-                 de.market_events_created, de.died_at
-        ORDER BY de.died_at DESC
+                 de.wealth_at_death, de.market_impact_score, 
+                 de.death_date
+        ORDER BY de.death_date DESC
         LIMIT 50
         "#
     )
@@ -108,9 +107,12 @@ pub async fn get_recent_deaths(
 
     let deaths: Vec<_> = deaths.into_iter().map(|(
         id, character_name, character_age, dynasty_name, death_cause,
-        character_wealth, net_inheritance, market_events_created,
-        died_at, ghost_listings
+        character_wealth, market_events_created,
+        death_date, ghost_listings
     )| {
+        // Calculate net inheritance (90% of wealth after 10% death tax)
+        let net_inheritance = character_wealth * rust_decimal::Decimal::new(9, 1) / rust_decimal::Decimal::new(10, 0);
+        
         json!({
             "id": id,
             "character_name": character_name,
@@ -121,7 +123,7 @@ pub async fn get_recent_deaths(
             "net_inheritance": net_inheritance,
             "market_events_created": market_events_created,
             "ghost_listings_created": ghost_listings,
-            "died_at": died_at,
+            "died_at": death_date,
         })
     }).collect();
 
@@ -137,12 +139,11 @@ pub async fn get_dynasty_death_stats(
     Path(dynasty_id): Path<Uuid>,
 ) -> Result<Json<Value>, AppError> {
     // Get total deaths and wealth impact
-    let stats: (i32, rust_decimal::Decimal, rust_decimal::Decimal) = sqlx::query_as(
+    let stats: (i32, rust_decimal::Decimal) = sqlx::query_as(
         r#"
         SELECT 
-            COUNT(*),
-            COALESCE(SUM(character_wealth), 0),
-            COALESCE(SUM(net_inheritance), 0)
+            COUNT(*)::INTEGER,
+            COALESCE(SUM(wealth_at_death), 0)
         FROM death_events
         WHERE dynasty_id = $1
         "#
@@ -172,11 +173,14 @@ pub async fn get_dynasty_death_stats(
         })
     }).collect();
 
+    // Calculate total inheritance (90% of total wealth lost)
+    let total_inheritance = stats.1 * rust_decimal::Decimal::new(9, 1) / rust_decimal::Decimal::new(10, 0);
+    
     Ok(Json(json!({
         "dynasty_id": dynasty_id,
         "total_deaths": stats.0,
         "total_wealth_lost": stats.1,
-        "total_inheritance_gained": stats.2,
+        "total_inheritance_gained": total_inheritance,
         "death_causes": causes
     })))
 }

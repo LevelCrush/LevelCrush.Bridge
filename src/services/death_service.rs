@@ -14,9 +14,9 @@ pub struct DeathEvent {
     pub character_id: Uuid,
     pub dynasty_id: Uuid,
     pub death_cause: String,
-    pub character_wealth: Decimal,
+    pub wealth_at_death: Decimal,
     pub location_id: Uuid,
-    pub died_at: DateTime<Utc>,
+    pub death_date: DateTime<Utc>,
 }
 
 impl DeathService {
@@ -80,20 +80,19 @@ impl DeathService {
         sqlx::query(
             r#"
             INSERT INTO death_events (
-                id, character_id, dynasty_id, death_cause,
-                character_wealth, inheritance_tax, net_inheritance,
-                market_events_created, died_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+                id, character_id, dynasty_id, death_date, death_cause,
+                location_id, wealth_at_death, market_impact_score,
+                ghost_market_active
+            ) VALUES ($1, $2, $3, NOW(), $4, $5, $6, $7, false)
             "#
         )
         .bind(death_event_id)
         .bind(character_id)
         .bind(character.dynasty_id)
         .bind(&death_cause)
+        .bind(character.location_id)
         .bind(character_wealth)
-        .bind(inheritance_tax)
-        .bind(net_inheritance)
-        .bind(0) // We'll create market events after the transaction commits
+        .bind(0i32) // We'll create market events after the transaction commits
         .execute(&mut *tx)
         .await?;
 
@@ -114,9 +113,9 @@ impl DeathService {
             character_id,
             dynasty_id: character.dynasty_id,
             death_cause,
-            character_wealth,
+            wealth_at_death: character_wealth,
             location_id,
-            died_at: Utc::now(),
+            death_date: Utc::now(),
         })
     }
 
