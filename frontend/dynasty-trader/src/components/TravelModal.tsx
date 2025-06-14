@@ -10,9 +10,10 @@ interface TravelModalProps {
   character: Character;
   isOpen: boolean;
   onClose: () => void;
+  onTravelSuccess?: (updatedCharacter: Character) => void;
 }
 
-export default function TravelModal({ character, isOpen, onClose }: TravelModalProps) {
+export default function TravelModal({ character, isOpen, onClose, onTravelSuccess }: TravelModalProps) {
   const [selectedRegionId, setSelectedRegionId] = useState<string>('');
   const queryClient = useQueryClient();
 
@@ -31,6 +32,20 @@ export default function TravelModal({ character, isOpen, onClose }: TravelModalP
       queryClient.invalidateQueries({ queryKey: ['characters'] });
       queryClient.invalidateQueries({ queryKey: ['character', character.id] });
       queryClient.invalidateQueries({ queryKey: ['character', character.id, 'stats'] });
+      
+      // Update the character data in the cache immediately
+      queryClient.setQueryData(['characters'], (oldData: Character[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map(char => 
+          char.id === character.id ? { ...char, location_id: selectedRegionId } : char
+        );
+      });
+      
+      // Call the success callback if provided
+      if (onTravelSuccess) {
+        onTravelSuccess({ ...character, location_id: selectedRegionId });
+      }
+      
       onClose();
     },
     onError: (error: any) => {

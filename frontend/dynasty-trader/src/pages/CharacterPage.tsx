@@ -401,6 +401,10 @@ export default function CharacterPage() {
           character={selectedCharacter}
           isOpen={showTravelModal}
           onClose={() => setShowTravelModal(false)}
+          onTravelSuccess={(updatedCharacter) => {
+            // Update the selected character with new location
+            setSelectedCharacter(updatedCharacter);
+          }}
         />
       )}
     </div>
