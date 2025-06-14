@@ -16,6 +16,9 @@ use uuid::Uuid;
 #[derive(Deserialize)]
 pub struct ListingQuery {
     pub item_id: Option<Uuid>,
+    pub item_category: Option<String>,
+    pub min_price: Option<f64>,
+    pub max_price: Option<f64>,
 }
 
 /// Create a market listing
@@ -106,7 +109,14 @@ pub async fn get_region_listings(
     Path(region_id): Path<Uuid>,
     Query(query): Query<ListingQuery>,
 ) -> Result<Json<Value>, AppError> {
-    let listings = MarketService::get_region_listings(&pool, region_id, query.item_id).await?;
+    let listings = MarketService::get_region_listings(
+        &pool, 
+        region_id, 
+        query.item_id,
+        query.item_category,
+        query.min_price,
+        query.max_price
+    ).await?;
 
     Ok(Json(json!({
         "listings": listings,

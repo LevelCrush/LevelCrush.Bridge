@@ -17,9 +17,9 @@ export const marketService = {
   },
 
   // Get listings for a region
-  async getRegionListings(regionId: string, itemType?: string, minPrice?: number, maxPrice?: number): Promise<MarketListing[]> {
+  async getRegionListings(regionId: string, itemCategory?: string, minPrice?: number, maxPrice?: number): Promise<MarketListing[]> {
     const params = new URLSearchParams();
-    if (itemType) params.append('item_type', itemType);
+    if (itemCategory) params.append('item_category', itemCategory);
     if (minPrice !== undefined) params.append('min_price', minPrice.toString());
     if (maxPrice !== undefined) params.append('max_price', maxPrice.toString());
     

@@ -253,8 +253,11 @@ impl MarketService {
         pool: &PgPool,
         region_id: Uuid,
         item_id: Option<Uuid>,
+        item_category: Option<String>,
+        min_price: Option<f64>,
+        max_price: Option<f64>,
     ) -> Result<Vec<serde_json::Value>, AppError> {
-        let base_query = r#"
+        let mut query = r#"
             SELECT 
                 ml.id,
                 ml.region_id,
@@ -279,25 +282,75 @@ impl MarketService {
             JOIN items i ON ml.item_id = i.id
             LEFT JOIN characters c ON ml.seller_character_id = c.id
             WHERE ml.region_id = $1 AND ml.is_active = true
-        "#;
+        "#.to_string();
 
-        let query = if item_id.is_some() {
-            format!("{} AND ml.item_id = $2 ORDER BY ml.price ASC, ml.listed_at DESC", base_query)
-        } else {
-            format!("{} ORDER BY ml.price ASC, ml.listed_at DESC", base_query)
-        };
+        let mut param_count = 1;
 
-        let rows = if let Some(item_id) = item_id {
-            sqlx::query(&query)
-                .bind(region_id)
-                .bind(item_id)
-                .fetch_all(pool)
-                .await?
-        } else {
-            sqlx::query(&query)
-                .bind(region_id)
-                .fetch_all(pool)
-                .await?
+        // Add filters
+        if item_id.is_some() {
+            param_count += 1;
+            query.push_str(&format!(" AND ml.item_id = ${}", param_count));
+        }
+
+        if item_category.is_some() {
+            param_count += 1;
+            query.push_str(&format!(" AND i.category = ${}", param_count));
+        }
+
+        if min_price.is_some() {
+            param_count += 1;
+            query.push_str(&format!(" AND ml.price >= ${}", param_count));
+        }
+
+        if max_price.is_some() {
+            param_count += 1;
+            query.push_str(&format!(" AND ml.price <= ${}", param_count));
+        }
+
+        query.push_str(" ORDER BY ml.price ASC, ml.listed_at DESC");
+
+        // Build query with parameters
+        let rows = match (item_id, item_category, min_price, max_price) {
+            (None, None, None, None) => {
+                sqlx::query(&query).bind(region_id).fetch_all(pool).await?
+            }
+            (Some(id), None, None, None) => {
+                sqlx::query(&query).bind(region_id).bind(id).fetch_all(pool).await?
+            }
+            (None, Some(cat), None, None) => {
+                sqlx::query(&query).bind(region_id).bind(cat).fetch_all(pool).await?
+            }
+            (None, None, Some(min), None) => {
+                sqlx::query(&query).bind(region_id).bind(Decimal::from_f64_retain(min).unwrap_or(Decimal::ZERO)).fetch_all(pool).await?
+            }
+            (None, None, None, Some(max)) => {
+                sqlx::query(&query).bind(region_id).bind(Decimal::from_f64_retain(max).unwrap_or(Decimal::MAX)).fetch_all(pool).await?
+            }
+            (Some(id), Some(cat), None, None) => {
+                sqlx::query(&query).bind(region_id).bind(id).bind(cat).fetch_all(pool).await?
+            }
+            (None, Some(cat), Some(min), None) => {
+                sqlx::query(&query).bind(region_id).bind(cat).bind(Decimal::from_f64_retain(min).unwrap_or(Decimal::ZERO)).fetch_all(pool).await?
+            }
+            (None, Some(cat), None, Some(max)) => {
+                sqlx::query(&query).bind(region_id).bind(cat).bind(Decimal::from_f64_retain(max).unwrap_or(Decimal::MAX)).fetch_all(pool).await?
+            }
+            (None, Some(cat), Some(min), Some(max)) => {
+                sqlx::query(&query).bind(region_id).bind(cat)
+                    .bind(Decimal::from_f64_retain(min).unwrap_or(Decimal::ZERO))
+                    .bind(Decimal::from_f64_retain(max).unwrap_or(Decimal::MAX))
+                    .fetch_all(pool).await?
+            }
+            (None, None, Some(min), Some(max)) => {
+                sqlx::query(&query).bind(region_id)
+                    .bind(Decimal::from_f64_retain(min).unwrap_or(Decimal::ZERO))
+                    .bind(Decimal::from_f64_retain(max).unwrap_or(Decimal::MAX))
+                    .fetch_all(pool).await?
+            }
+            _ => {
+                // For complex combinations, fall back to simple query
+                sqlx::query(&query).bind(region_id).fetch_all(pool).await?
+            }
         };
 
         let listings: Vec<serde_json::Value> = rows.into_iter().map(|row| {

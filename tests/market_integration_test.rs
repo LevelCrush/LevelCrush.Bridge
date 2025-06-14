@@ -39,7 +39,7 @@ async fn test_market_listing_lifecycle() {
     assert_eq!(create_request.price, Decimal::from(15));
     
     // Test getting region listings
-    let listings = MarketService::get_region_listings(&pool, test_region_id, None)
+    let listings = MarketService::get_region_listings(&pool, test_region_id, None, None, None, None)
         .await
         .unwrap_or_default();
     
