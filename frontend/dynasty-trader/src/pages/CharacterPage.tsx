@@ -6,6 +6,7 @@ import { marketService } from '@/services/market';
 import { Character, CharacterStats } from '@/types';
 import CharacterInventory from '@/components/CharacterInventory';
 import TransactionHistory from '@/components/TransactionHistory';
+import TravelModal from '@/components/TravelModal';
 import { 
   UserIcon, 
   HeartIcon, 
@@ -21,6 +22,7 @@ import toast from 'react-hot-toast';
 export default function CharacterPage() {
   const navigate = useNavigate();
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [showTravelModal, setShowTravelModal] = useState(false);
 
   // Fetch all dynasty characters
   const { data: characters = [], isLoading: charactersLoading } = useQuery({
@@ -200,13 +202,22 @@ export default function CharacterPage() {
                     </p>
                   </div>
                   {selectedCharacter.is_alive && (
-                    <button
-                      onClick={() => navigate('/market')}
-                      className="btn-primary flex items-center"
-                    >
-                      <CurrencyDollarIcon className="-ml-1 mr-2 h-5 w-5" />
-                      Trade
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setShowTravelModal(true)}
+                        className="btn-secondary flex items-center"
+                      >
+                        <MapPinIcon className="-ml-1 mr-2 h-5 w-5" />
+                        Travel
+                      </button>
+                      <button
+                        onClick={() => navigate('/market')}
+                        className="btn-primary flex items-center"
+                      >
+                        <CurrencyDollarIcon className="-ml-1 mr-2 h-5 w-5" />
+                        Trade
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -354,7 +365,7 @@ export default function CharacterPage() {
                       Visit Market
                     </button>
                     <button
-                      onClick={() => toast.error('Travel not yet implemented')}
+                      onClick={() => setShowTravelModal(true)}
                       className="btn-secondary text-sm"
                     >
                       Travel
@@ -375,6 +386,15 @@ export default function CharacterPage() {
           )}
         </div>
       </div>
+      
+      {/* Travel Modal */}
+      {selectedCharacter && (
+        <TravelModal
+          character={selectedCharacter}
+          isOpen={showTravelModal}
+          onClose={() => setShowTravelModal(false)}
+        />
+      )}
     </div>
   );
 }

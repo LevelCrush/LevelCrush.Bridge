@@ -35,4 +35,11 @@ export const characterService = {
     const response = await api.get<{ transactions: any[] }>(`/characters/${id}/transactions`);
     return response.transactions;
   },
+
+  async travelToRegion(characterId: string, regionId: string): Promise<Character> {
+    const response = await api.post<{ character: Character }>(`/characters/${characterId}/travel`, {
+      region_id: regionId
+    });
+    return response.character;
+  },
 };

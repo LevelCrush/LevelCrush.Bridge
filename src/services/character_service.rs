@@ -405,6 +405,44 @@ impl CharacterService {
         
         Ok(())
     }
+
+    /// Travel to a new region
+    pub async fn travel_to_region(
+        pool: &PgPool,
+        character_id: Uuid,
+        new_region_id: Uuid,
+    ) -> Result<Character, AppError> {
+        // Check if character exists and is alive
+        let character = Self::get_character(pool, character_id).await?;
+        
+        if character.death_date.is_some() {
+            return Err(AppError::BadRequest("Cannot travel with a dead character".to_string()));
+        }
+
+        // Check if region exists
+        let region_exists: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM regions WHERE id = $1)"
+        )
+        .bind(new_region_id)
+        .fetch_one(pool)
+        .await?;
+
+        if !region_exists {
+            return Err(AppError::NotFound("Region not found".to_string()));
+        }
+
+        // Update character location
+        sqlx::query(
+            "UPDATE characters SET location_id = $1 WHERE id = $2"
+        )
+        .bind(new_region_id)
+        .bind(character_id)
+        .execute(pool)
+        .await?;
+
+        // Return updated character
+        Self::get_character(pool, character_id).await
+    }
 }
 
 #[cfg(test)]

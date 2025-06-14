@@ -135,6 +135,42 @@ pub async fn get_dynasty_characters(
     })))
 }
 
+#[derive(Debug, Deserialize)]
+pub struct TravelRequest {
+    pub region_id: Uuid,
+}
+
+/// Travel to a new region
+pub async fn travel_to_region(
+    State(pool): State<Arc<PgPool>>,
+    Extension(claims): Extension<Claims>,
+    Path(character_id): Path<Uuid>,
+    Json(request): Json<TravelRequest>,
+) -> Result<Json<Value>, AppError> {
+    let user_id = Uuid::parse_str(&claims.sub)?;
+    
+    // Verify character belongs to user's dynasty
+    let character = CharacterService::get_character(&pool, character_id).await?;
+    
+    let owns_character: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM dynasties WHERE id = $1 AND user_id = $2)"
+    )
+    .bind(character.dynasty_id)
+    .bind(user_id)
+    .fetch_one(&*pool)
+    .await?;
+
+    if !owns_character {
+        return Err(AppError::Forbidden);
+    }
+
+    let updated_character = CharacterService::travel_to_region(&pool, character_id, request.region_id).await?;
+
+    Ok(Json(json!({
+        "character": updated_character
+    })))
+}
+
 /// Process character death
 pub async fn process_character_death(
     State(pool): State<Arc<PgPool>>,
