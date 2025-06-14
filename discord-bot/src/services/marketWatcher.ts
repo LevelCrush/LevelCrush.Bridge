@@ -3,6 +3,7 @@ import { dynastyTraderAPI } from './api.js';
 import { createMarketEmbed } from '../utils/embeds.js';
 import { logger } from '../utils/logger.js';
 import { config } from '../config/config.js';
+import { getGuildsWithChannel } from './guildConfig.js';
 
 let marketWatchInterval: NodeJS.Timeout | null = null;
 const previousPrices = new Map<string, Map<string, number>>();
@@ -10,12 +11,6 @@ const previousPrices = new Map<string, Map<string, number>>();
 export function startMarketWatcher(client: Client) {
   if (marketWatchInterval) {
     clearInterval(marketWatchInterval);
-  }
-
-  // Don't start if no channel configured
-  if (!config.channels.marketAlerts) {
-    logger.info('Market alerts channel not configured, skipping market watcher');
-    return;
   }
 
   marketWatchInterval = setInterval(async () => {
@@ -30,9 +25,11 @@ export function startMarketWatcher(client: Client) {
 }
 
 async function checkMarketChanges(client: Client) {
-  const channel = client.channels.cache.get(config.channels.marketAlerts!) as TextChannel;
-  if (!channel) {
-    logger.warn('Market alerts channel not found');
+  // Get all guilds with market alerts configured
+  const guildsWithAlerts = await getGuildsWithChannel('market_alerts');
+  
+  if (guildsWithAlerts.size === 0) {
+    logger.debug('No guilds have market alerts configured');
     return;
   }
 
@@ -60,7 +57,19 @@ async function checkMarketChanges(client: Client) {
             inline: false
           });
 
-        await channel.send({ embeds: [embed] });
+        // Send to all configured channels
+        for (const [guildId, channelId] of guildsWithAlerts) {
+          try {
+            const channel = client.channels.cache.get(channelId) as TextChannel;
+            if (channel) {
+              await channel.send({ embeds: [embed] });
+            } else {
+              logger.warn(`Market alerts channel ${channelId} not found for guild ${guildId}`);
+            }
+          } catch (error) {
+            logger.error(`Failed to send market alert to guild ${guildId}:`, error);
+          }
+        }
       }
 
       // Update stored values

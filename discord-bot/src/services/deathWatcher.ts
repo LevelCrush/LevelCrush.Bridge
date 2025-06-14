@@ -3,6 +3,7 @@ import { dynastyTraderAPI } from './api.js';
 import { createDeathEmbed } from '../utils/embeds.js';
 import { logger } from '../utils/logger.js';
 import { config } from '../config/config.js';
+import { getGuildsWithChannel } from './guildConfig.js';
 
 let deathWatchInterval: NodeJS.Timeout | null = null;
 const announcedDeaths = new Set<string>();
@@ -10,12 +11,6 @@ const announcedDeaths = new Set<string>();
 export function startDeathWatcher(client: Client) {
   if (deathWatchInterval) {
     clearInterval(deathWatchInterval);
-  }
-
-  // Don't start if no channel configured
-  if (!config.channels.deathAnnouncements) {
-    logger.info('Death announcements channel not configured, skipping death watcher');
-    return;
   }
 
   deathWatchInterval = setInterval(async () => {
@@ -30,9 +25,11 @@ export function startDeathWatcher(client: Client) {
 }
 
 async function checkForDeaths(client: Client) {
-  const channel = client.channels.cache.get(config.channels.deathAnnouncements!) as TextChannel;
-  if (!channel) {
-    logger.warn('Death announcements channel not found');
+  // Get all guilds with death announcements configured
+  const guildsWithAnnouncements = await getGuildsWithChannel('death_announcements');
+  
+  if (guildsWithAnnouncements.size === 0) {
+    logger.debug('No guilds have death announcements configured');
     return;
   }
 
@@ -55,7 +52,20 @@ async function checkForDeaths(client: Client) {
 
       // Create and send embed
       const embed = createDeathEmbed(death);
-      await channel.send({ embeds: [embed] });
+      
+      // Send to all configured channels
+      for (const [guildId, channelId] of guildsWithAnnouncements) {
+        try {
+          const channel = client.channels.cache.get(channelId) as TextChannel;
+          if (channel) {
+            await channel.send({ embeds: [embed] });
+          } else {
+            logger.warn(`Death announcements channel ${channelId} not found for guild ${guildId}`);
+          }
+        } catch (error) {
+          logger.error(`Failed to send death announcement to guild ${guildId}:`, error);
+        }
+      }
       
       // Mark as announced
       announcedDeaths.add(death.id);

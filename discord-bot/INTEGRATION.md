@@ -96,6 +96,12 @@ npm start
 
 ## Available Commands
 
+### Admin Commands
+- `/setup channel <type> <channel>` - Configure notification channels
+- `/setup view` - View current server configuration
+- `/setup reset [type]` - Reset configuration
+- `/help` - Get comprehensive help
+
 ### Public Commands
 - `/ping` - Check bot responsiveness
 - `/market status [region]` - View market status
@@ -105,13 +111,10 @@ npm start
 
 ### Authenticated Commands
 - `/link` - Link your Discord account
-- `/unlink` - Unlink your Discord account
 - `/dynasty info` - View your dynasty information
 - `/character info [name]` - View character details
 - `/character list` - List all your characters
 - `/character inventory` - View character inventory
-- `/trade sell` - List items on market (coming soon)
-- `/trade buy` - Purchase from market (coming soon)
 
 ## Background Services
 
@@ -129,13 +132,30 @@ npm start
 
 ## Channel Configuration
 
-Set these channel IDs in `.env`:
+Channels are configured per-server using the `/setup` command:
 
-```env
-MARKET_ALERTS_CHANNEL_ID=123456789
-DEATH_ANNOUNCEMENTS_CHANNEL_ID=123456789
-LEADERBOARD_CHANNEL_ID=123456789
 ```
+/setup channel type:Market Alerts channel:#market-alerts
+/setup channel type:Death Announcements channel:#announcements
+/setup channel type:Leaderboard Updates channel:#leaderboard
+```
+
+To view configuration:
+```
+/setup view
+```
+
+To reset:
+```
+/setup reset type:All Settings
+```
+
+### Configuration Storage
+
+- Configurations are stored in the PostgreSQL database when available
+- Falls back to in-memory storage if database is not configured
+- Each server can have different channels configured
+- Bot must have "Send Messages" and "Embed Links" permissions
 
 ## Permissions
 

@@ -65,33 +65,29 @@ npm start
 
 ## Commands
 
+### Setup Commands (Admin Only)
+- `/setup channel <type> <channel>` - Configure notification channels
+- `/setup view` - View current bot configuration
+- `/setup reset [type]` - Reset bot configuration
+- `/help` - Get help with bot commands
+
 ### Market Commands
 - `/market status [region]` - Get current market status for a region
-- `/market prices <item> [region]` - Check item prices across regions
-- `/market alerts` - Manage price alerts
+- `/market regions` - List all trading regions
 - `/market events` - View active market events
 
 ### Character Commands
 - `/character info [name]` - View character information
-- `/character inventory [name]` - List character inventory
-- `/character location [name]` - Check character location
-- `/character travel <destination>` - Travel to another region
-
-### Trading Commands
-- `/trade sell <item> <quantity> <price> [region]` - List item on market
-- `/trade buy <listing_id> <quantity>` - Purchase from market
-- `/trade history` - View recent transactions
-- `/trade cancel <listing_id>` - Cancel your listing
+- `/character list` - List all your characters
+- `/character inventory` - View character inventory
 
 ### Dynasty Commands
-- `/dynasty info [name]` - View dynasty information
+- `/dynasty info` - View your dynasty information
 - `/dynasty leaderboard [type]` - Show top dynasties
-- `/dynasty members` - List dynasty members
 
 ### Account Commands
 - `/link` - Link your Discord account to Dynasty Trader
-- `/unlink` - Unlink your Discord account
-- `/profile` - View your linked profile
+- `/ping` - Check bot responsiveness
 
 ## Architecture
 
@@ -146,6 +142,19 @@ The bot communicates with the Dynasty Trader backend API. All API calls should g
 5. Bot exchanges code for access token
 6. Bot stores Discord ID <-> Dynasty Trader account mapping
 
+## Server Configuration
+
+Unlike global environment variables, notification channels are configured per-server using the `/setup` command:
+
+1. **Market Alerts** - Notifies when market volumes change by 20%+
+2. **Death Announcements** - Announces character deaths with market impact
+3. **Leaderboard Updates** - Posts top dynasties every 5 minutes
+
+Server admins can use:
+- `/setup channel <type> <channel>` - Configure a notification channel
+- `/setup view` - See current configuration
+- `/setup reset` - Reset configuration
+
 ## Environment Variables
 
 | Variable | Description | Required |
@@ -153,9 +162,11 @@ The bot communicates with the Dynasty Trader backend API. All API calls should g
 | DISCORD_TOKEN | Bot token from Discord | Yes |
 | DISCORD_CLIENT_ID | Application client ID | Yes |
 | DYNASTY_TRADER_API_URL | Backend API URL | Yes |
-| DATABASE_URL | PostgreSQL connection string | Yes |
+| DATABASE_URL | PostgreSQL connection string | No* |
 | OAUTH2_REDIRECT_URI | OAuth2 callback URL | Yes |
 | LOG_LEVEL | Logging level (debug/info/warn/error) | No |
+
+*Database is optional - bot will use in-memory storage if not available
 
 ## Contributing
 
