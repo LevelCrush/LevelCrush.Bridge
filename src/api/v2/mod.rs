@@ -11,6 +11,7 @@ pub mod dynasty;
 pub mod market;
 pub mod market_analytics;
 pub mod death;
+pub mod discord;
 
 use crate::api::middleware::auth_pg::auth_middleware_pg;
 
@@ -99,6 +100,11 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
         // Death routes
         .route("/deaths/recent", get(death::get_recent_deaths))
         .route("/dynasties/:id/deaths", get(death::get_dynasty_death_stats))
+        
+        // Discord integration routes
+        .route("/users/link-discord", post(discord::link_discord_account))
+        .route("/users/unlink-discord", post(discord::unlink_discord_account))
+        
         .with_state(pool.clone())
         .layer(axum::middleware::from_fn_with_state(
             pool.clone(),
@@ -113,6 +119,9 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
         // Public market analytics
         .route("/market/overview", get(market_analytics::get_market_overview))
         .route("/market/regional-analytics", get(market_analytics::get_regional_analytics))
+        // Discord public routes
+        .route("/users/discord/:discord_id", get(discord::get_user_by_discord_id))
+        .route("/auth/discord/callback", get(discord::discord_oauth_callback))
         .merge(protected_routes)
         .with_state(pool)
 }
