@@ -10,6 +10,7 @@ import {
   Bars3Icon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
+import { Skull } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 
@@ -19,6 +20,7 @@ const navigation = [
   { name: 'Character', href: '/character', icon: UserIcon },
   { name: 'Market', href: '/market', icon: ChartBarIcon },
   { name: 'Dynasty', href: '/dynasty', icon: UsersIcon },
+  { name: 'Deaths', href: '/deaths', icon: Skull },
 ];
 
 export default function Layout() {

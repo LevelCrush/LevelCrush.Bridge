@@ -89,11 +89,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
               break;
               
             case WebSocketMessageType.CharacterDeath:
-              // Show notification for character deaths
-              const deathData = message.data;
-              toast(`${deathData.character_name} of ${deathData.dynasty_name} has died at age ${deathData.age}`, {
-                icon: '💀',
-                duration: 5000,
+              // Handle character deaths with enhanced notifications
+              import('@/services/deathEventManager').then(({ deathEventManager }) => {
+                deathEventManager.handleCharacterDeath(message.data);
               });
               break;
               

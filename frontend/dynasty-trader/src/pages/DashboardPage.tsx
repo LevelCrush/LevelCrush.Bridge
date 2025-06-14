@@ -10,10 +10,15 @@ import { PlusIcon, UserGroupIcon, UserIcon, CurrencyDollarIcon, MapPinIcon } fro
 import { CharacterCardSkeleton, StatCardSkeleton } from '@/components/LoadingSkeleton';
 import { FormField, Input, Textarea } from '@/components/FormField';
 import { validateName, validateMotto } from '@/utils/validation';
+import { useCharacterDeathListener } from '@/hooks/useCharacterDeathListener';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  
+  // Listen for character death events to refresh data
+  useCharacterDeathListener();
+  
   const [showDynastyModal, setShowDynastyModal] = useState(false);
   const [showCharacterModal, setShowCharacterModal] = useState(false);
   const [dynastyForm, setDynastyForm] = useState({ name: '', motto: '' });
