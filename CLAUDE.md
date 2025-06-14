@@ -117,11 +117,16 @@ npm run dev
 - [x] Character state persistence across pages
 - [x] Market location awareness (defaults to character location)
 
-### Phase 5: Discord Bot (Upcoming)
-- [ ] OAuth2 integration
-- [ ] Market alerts
-- [ ] Death announcements
-- [ ] Trading commands
+### Phase 5: Discord Bot (In Progress)
+- [x] Bot project structure with TypeScript
+- [x] OAuth2 integration endpoints in backend
+- [x] Basic commands (ping, link, market, dynasty, character)
+- [x] Market watcher service for alerts
+- [x] Death announcements service
+- [x] Dynasty leaderboards
+- [ ] Trading commands (sell, buy, cancel)
+- [ ] Price alert system
+- [ ] Character travel commands
 
 ## Key Files & Directories
 
@@ -136,6 +141,8 @@ bridge/                          # Project root
 │   │   ├── death_service.rs   # Death handling ✅
 │   │   └── market_service.rs  # Regional markets ✅
 │   └── api/
+│       ├── v2/
+│       │   └── discord.rs     # Discord integration ✅
 │       └── websocket.rs       # Real-time updates ✅
 ├── frontend/
 │   └── dynasty-trader/        # React PWA ✅
@@ -145,10 +152,16 @@ bridge/                          # Project root
 │       │   ├── types/         # TypeScript interfaces
 │       │   └── stores/        # Zustand state management
 │       └── package.json       # Dependencies
+├── discord-bot/              # Discord integration ✅
+│   ├── src/
+│   │   ├── commands/         # Slash commands
+│   │   ├── services/         # API client & watchers
+│   │   ├── events/           # Discord event handlers
+│   │   └── index.ts          # Bot entry point
+│   └── package.json          # Node.js dependencies
 ├── migrations/
 │   ├── mariadb/              # Legacy Bridge migrations
 │   └── postgres/             # Dynasty Trader migrations ✅
-├── discord-bot/              # Discord integration (planned)
 └── docs/
     └── game-design/          # Comprehensive game design
 ```
@@ -189,6 +202,12 @@ bridge/                          # Project root
 #### WebSocket
 - `ws://localhost:3113/ws/market` - Real-time market updates
   - Subscribe to channels: `market:{region_id}`, `deaths`, `events`
+
+#### Discord Integration
+- `POST /api/v2/users/link-discord` - Link Discord account (requires auth)
+- `POST /api/v2/users/unlink-discord` - Unlink Discord account (requires auth)
+- `GET /api/v2/users/discord/:discord_id` - Get user by Discord ID (public)
+- `GET /api/v2/auth/discord/callback` - OAuth2 callback endpoint
 
 ### Legacy Bridge API (v1)
 Still functional but deprecated - will be removed in future versions.

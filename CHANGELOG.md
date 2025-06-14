@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Discord Bot Integration (2025-06-14)
+
+#### Added
+- **Discord Bot Project Structure**
+  - TypeScript-based Discord.js bot with modular architecture
+  - Command handler system with slash commands
+  - Event-driven architecture for Discord events
+  - Service layer for Dynasty Trader API integration
+  
+- **OAuth2 Account Linking**
+  - `/link` command generates secure OAuth2 URLs
+  - State token validation with 10-minute expiry
+  - Backend endpoints for linking/unlinking Discord accounts
+  - Database schema update with discord_id column
+  
+- **Market Commands**
+  - `/market status [region]` - View regional market statistics
+  - `/market regions` - List all trading regions with tax rates
+  - `/market events` - View active market events affecting prices
+  - Real-time market data integration
+  
+- **Character & Dynasty Commands**
+  - `/dynasty info` - View your dynasty information
+  - `/dynasty leaderboard [type]` - Top dynasties by wealth/reputation/generation
+  - `/character info [name]` - View character stats and location
+  - `/character list` - List all dynasty characters
+  - `/character inventory` - View character inventory with values
+  
+- **Background Services**
+  - Market Watcher - Alerts on 20%+ volume changes
+  - Death Watcher - Announces character deaths with market impact
+  - Configurable update intervals and channel targets
+  - Automatic reconnection on WebSocket disconnect
+  
+- **Developer Features**
+  - Comprehensive logging with configurable levels
+  - Type-safe API client with error handling
+  - Rich embed builders for consistent UI
+  - Command deployment system
+  - Environment-based configuration
+
+#### Technical Implementation
+- Discord.js v14 with TypeScript
+- Modular command structure
+- Axios for API communication
+- PM2-ready production setup
+- Docker support included
+
 ### Character Inventory Management UI (2025-06-14)
 
 #### Added
