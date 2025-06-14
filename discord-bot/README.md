@@ -85,6 +85,12 @@ npm start
 - `/dynasty info` - View your dynasty information
 - `/dynasty leaderboard [type]` - Show top dynasties
 
+### Trading Commands
+- `/trade sell <item> <quantity> <price>` - Create a market listing
+- `/trade buy <listing_id> [quantity]` - Purchase from the market
+- `/trade cancel <listing_id>` - Cancel your market listing
+- `/trade listings [character]` - View your active listings
+
 ### Account Commands
 - `/link` - Link your Discord account to Dynasty Trader
 - `/ping` - Check bot responsiveness

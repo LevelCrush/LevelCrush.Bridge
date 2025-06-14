@@ -35,6 +35,7 @@ const command: Command = {
     await interaction.deferReply();
 
     try {
+      // @ts-ignore - Discord.js types issue with subcommands
       const subcommand = interaction.options.getSubcommand();
 
       // Get user info
@@ -46,13 +47,15 @@ const command: Command = {
       } catch (error: any) {
         if (error.response?.status === 404) {
           const embed = createErrorEmbed('You need to link your Discord account first. Use `/link` to get started.');
-          return interaction.editReply({ embeds: [embed] });
+          await interaction.editReply({ embeds: [embed] });
+          return;
         }
         throw error;
       }
 
       switch (subcommand) {
         case 'info': {
+          // @ts-ignore - Discord.js types issue with subcommands
           const characterName = interaction.options.getString('name');
           const characters = await dynastyTraderAPI.getCharacters(dynasty.id);
           
@@ -63,14 +66,16 @@ const command: Command = {
             );
             if (!character) {
               const embed = createErrorEmbed(`Character "${characterName}" not found in your dynasty.`);
-              return interaction.editReply({ embeds: [embed] });
+              await interaction.editReply({ embeds: [embed] });
+          return;
             }
           } else {
             // Get first alive character
             character = characters.find(c => c.is_alive);
             if (!character) {
               const embed = createErrorEmbed('You have no living characters. Create one in the game!');
-              return interaction.editReply({ embeds: [embed] });
+              await interaction.editReply({ embeds: [embed] });
+          return;
             }
           }
 
@@ -91,7 +96,8 @@ const command: Command = {
           
           if (characters.length === 0) {
             const embed = createErrorEmbed('You have no characters. Create one in the game!');
-            return interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
+          return;
           }
 
           const livingChars = characters.filter(c => c.is_alive);
@@ -123,7 +129,8 @@ const command: Command = {
           
           if (!character) {
             const embed = createErrorEmbed('You have no living characters. Create one in the game!');
-            return interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
+          return;
           }
 
           const inventory = await dynastyTraderAPI.getCharacterInventory(character.id);

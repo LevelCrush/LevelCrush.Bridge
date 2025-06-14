@@ -50,7 +50,7 @@ pub async fn link_discord_account(
     )
     .fetch_optional(pool.as_ref())
     .await
-    .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    .map_err(|e| AppError::Database(e))?;
 
     if let Some(existing_user) = existing {
         if existing_user.id != user_id {
@@ -72,7 +72,7 @@ pub async fn link_discord_account(
     )
     .execute(pool.as_ref())
     .await
-    .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    .map_err(|e| AppError::Database(e))?;
 
     Ok((
         StatusCode::OK,
@@ -94,11 +94,10 @@ pub async fn get_user_by_discord_id(
         email: String,
         discord_id: Option<String>,
         created_at: chrono::DateTime<chrono::Utc>,
-        updated_at: chrono::DateTime<chrono::Utc>,
+        updated_at: Option<chrono::DateTime<chrono::Utc>>,
     }
 
-    let user = sqlx::query_as!(
-        UserResponse,
+    let user = sqlx::query!(
         r#"
         SELECT id, email, discord_id, created_at, updated_at
         FROM users
@@ -108,11 +107,20 @@ pub async fn get_user_by_discord_id(
     )
     .fetch_optional(pool.as_ref())
     .await
-    .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    .map_err(|e| AppError::Database(e))?;
 
     match user {
-        Some(user) => Ok((StatusCode::OK, Json(user))),
-        None => Err(AppError::NotFound),
+        Some(user) => {
+            let response = UserResponse {
+                id: user.id,
+                email: user.email,
+                discord_id: user.discord_id,
+                created_at: user.created_at.unwrap_or_else(|| chrono::Utc::now()),
+                updated_at: user.updated_at.map(|dt| dt),
+            };
+            Ok((StatusCode::OK, Json(response)))
+        },
+        None => Err(AppError::NotFound("User not found".to_string())),
     }
 }
 
@@ -125,12 +133,12 @@ pub async fn unlink_discord_account(
         .map_err(|_| AppError::BadRequest("Invalid user ID".to_string()))?;
 
     sqlx::query!(
-        "UPDATE users SET discord_id = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+        "UPDATE users SET discord_id = NULL WHERE id = $1",
         user_id
     )
     .execute(pool.as_ref())
     .await
-    .map_err(|e| AppError::DatabaseError(e.to_string()))?;
+    .map_err(|e| AppError::Database(e))?;
 
     Ok((
         StatusCode::OK,
@@ -143,7 +151,7 @@ pub async fn unlink_discord_account(
 
 /// OAuth2 callback handler for Discord bot
 pub async fn discord_oauth_callback(
-    Query(params): Query<DiscordCallbackQuery>,
+    Query(_params): Query<DiscordCallbackQuery>,
 ) -> Result<impl IntoResponse, AppError> {
     // In a real implementation, you would:
     // 1. Verify the state parameter matches what was sent

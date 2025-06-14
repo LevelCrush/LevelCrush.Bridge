@@ -21,7 +21,8 @@ const command: Command = {
         const user = await dynastyTraderAPI.getUserByDiscordId(interaction.user.id);
         if (user) {
           const embed = createErrorEmbed('Your Discord account is already linked to Dynasty Trader!');
-          return interaction.reply({ embeds: [embed], ephemeral: true });
+          await interaction.reply({ embeds: [embed], ephemeral: true });
+          return;
         }
       } catch (error: any) {
         // 404 is expected if not linked

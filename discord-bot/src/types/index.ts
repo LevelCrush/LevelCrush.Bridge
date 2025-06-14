@@ -1,8 +1,8 @@
-import { SlashCommandBuilder, ContextMenuCommandBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder, ContextMenuCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from '@discordjs/builders';
 import { CommandInteraction, Client, Collection } from 'discord.js';
 
 export interface Command {
-  data: SlashCommandBuilder | ContextMenuCommandBuilder;
+  data: SlashCommandBuilder | ContextMenuCommandBuilder | SlashCommandSubcommandsOnlyBuilder | Omit<SlashCommandBuilder, "addSubcommandGroup" | "addSubcommand">;
   execute: (interaction: CommandInteraction) => Promise<void>;
 }
 
@@ -43,6 +43,21 @@ export interface Character {
   luck: number;
   wealth?: string;
   location_id?: string;
+  region_id?: string;
+  region_name?: string;
+}
+
+export interface CharacterStats {
+  id: string;
+  name: string;
+  health: number;
+  stamina: number;
+  charisma: number;
+  intelligence: number;
+  luck: number;
+  inheritance_received: number;
+  total_inventory_value: number;
+  wealth: number;
 }
 
 export interface MarketRegion {
@@ -58,10 +73,13 @@ export interface MarketRegion {
 export interface MarketListing {
   id: string;
   seller_character_id: string;
+  seller_character_name?: string;
   region_id: string;
   item_id: string;
+  item_name: string;
   quantity: number;
   price: string;
+  price_per_unit: number;
   is_active: boolean;
   is_ghost_listing: boolean;
   listed_at: string;

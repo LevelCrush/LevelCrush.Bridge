@@ -34,7 +34,7 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `).catch(err => {
+    `).catch((err: any) => {
       logger.error('Failed to create guild configs table:', err);
     });
   }

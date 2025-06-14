@@ -116,6 +116,12 @@ npm start
 - `/character list` - List all your characters
 - `/character inventory` - View character inventory
 
+### Trading Commands (Authenticated)
+- `/trade sell <item> <quantity> <price>` - Create a market listing
+- `/trade buy <listing_id> [quantity]` - Purchase from the market
+- `/trade cancel <listing_id>` - Cancel your market listing
+- `/trade listings [character]` - View your active listings
+
 ## Background Services
 
 ### Market Watcher
@@ -271,11 +277,11 @@ The bot logs its status every 5 minutes. Monitor for:
 ## Future Features
 
 ### Planned
-- Trading commands (`/trade sell`, `/trade buy`)
 - Price alerts (`/alert create`)
 - Character travel (`/character travel`)
 - Market predictions
 - Dynasty alliances
+- Automated trading strategies
 
 ### Considering
 - Voice channel integration

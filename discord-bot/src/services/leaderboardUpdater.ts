@@ -54,7 +54,7 @@ async function updateLeaderboards(client: Client) {
 
     // Add wealth leaderboard
     if (wealthLeaderboard.length > 0) {
-      const wealthList = wealthLeaderboard.slice(0, 5).map((entry, index) => {
+      const wealthList = wealthLeaderboard.slice(0, 5).map((entry: any, index: number) => {
         const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
         return `${medal} **${entry.name}** - ${parseFloat(entry.wealth).toLocaleString()} gold`;
       }).join('\n');
@@ -68,7 +68,7 @@ async function updateLeaderboards(client: Client) {
 
     // Add reputation leaderboard
     if (reputationLeaderboard.length > 0) {
-      const repList = reputationLeaderboard.slice(0, 5).map((entry, index) => {
+      const repList = reputationLeaderboard.slice(0, 5).map((entry: any, index: number) => {
         const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
         return `${medal} **${entry.name}** - ${entry.reputation} rep`;
       }).join('\n');
@@ -82,7 +82,7 @@ async function updateLeaderboards(client: Client) {
 
     // Add generation leaderboard
     if (generationLeaderboard.length > 0) {
-      const genList = generationLeaderboard.slice(0, 5).map((entry, index) => {
+      const genList = generationLeaderboard.slice(0, 5).map((entry: any, index: number) => {
         const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
         return `${medal} **${entry.name}** - Gen ${entry.highest_generation}`;
       }).join('\n');

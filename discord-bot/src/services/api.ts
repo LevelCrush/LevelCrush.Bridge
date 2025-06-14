@@ -80,10 +80,6 @@ class DynastyTraderAPI {
     return response.data;
   }
 
-  async getCharacterInventory(characterId: string) {
-    const response = await this.client.get(`/api/v2/characters/${characterId}/inventory`);
-    return response.data;
-  }
 
   async travelCharacter(characterId: string, destinationId: string, accessToken: string) {
     const response = await this.client.post(
@@ -184,6 +180,62 @@ class DynastyTraderAPI {
       params: { limit },
     });
     return response.data;
+  }
+
+  // Trading operations
+  async createMarketListing(data: {
+    character_id: string;
+    item_id: string;
+    quantity: number;
+    price_per_unit: number;
+    region_id: string;
+  }) {
+    const response = await this.client.post('/api/v2/market/listings', data);
+    return response.data;
+  }
+
+  async purchaseFromListing(data: {
+    listing_id: number;
+    buyer_character_id: string;
+    quantity: number;
+  }) {
+    const response = await this.client.post('/api/v2/market/purchase', data);
+    return response.data;
+  }
+
+  async cancelMarketListing(listingId: number) {
+    const response = await this.client.delete(`/api/v2/market/listings/${listingId}`);
+    return response.data;
+  }
+
+  // Character inventory
+  async getCharacterInventory(characterId: string | number) {
+    const response = await this.client.get(`/api/v2/characters/${characterId}/inventory`);
+    return response.data;
+  }
+
+  // Discord integration
+  async getDiscordUser(discordId: string) {
+    try {
+      const response = await this.client.get(`/api/v2/users/discord/${discordId}`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  // Character stats
+  async getCharacterStats(characterId: string) {
+    const response = await this.client.get(`/api/v2/characters/${characterId}/stats`);
+    return response.data;
+  }
+
+  // Market regions
+  async getMarketRegions() {
+    return this.getRegions();
   }
 
   // WebSocket subscription info

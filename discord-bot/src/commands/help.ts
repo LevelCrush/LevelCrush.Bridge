@@ -48,6 +48,14 @@ const command: Command = {
           inline: false
         },
         {
+          name: '💰 Trading',
+          value: '`/trade sell` - Create a market listing\n' +
+                '`/trade buy` - Purchase from the market\n' +
+                '`/trade cancel` - Cancel your listing\n' +
+                '`/trade listings` - View your active listings',
+          inline: false
+        },
+        {
           name: '📢 Automatic Notifications',
           value: '• **Market Alerts** - Major price/volume changes\n' +
                 '• **Death Announcements** - Character deaths with market impact\n' +

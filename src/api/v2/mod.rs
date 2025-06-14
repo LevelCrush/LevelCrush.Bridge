@@ -86,6 +86,7 @@ pub fn routes(pool: Arc<PgPool>) -> Router {
         
         // Market routes
         .route("/market/listings", post(market::create_listing))
+        .route("/market/listings/:id", axum::routing::delete(market::cancel_listing))
         .route("/market/purchase", post(market::purchase_listing))
         .route("/market/regions", get(market::get_regions))
         .route("/market/regions/:id/listings", get(market::get_region_listings))

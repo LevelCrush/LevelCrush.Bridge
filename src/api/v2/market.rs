@@ -260,3 +260,78 @@ pub struct TimeRangeQuery {
 }
 
 use chrono::DateTime;
+
+/// Cancel a market listing
+pub async fn cancel_listing(
+    State(pool): State<Arc<PgPool>>,
+    Extension(claims): Extension<Claims>,
+    Path(listing_id): Path<Uuid>,
+) -> Result<StatusCode, AppError> {
+    let user_id = Uuid::parse_str(&claims.sub)?;
+    
+    // Verify the listing belongs to the user's character
+    let owns_listing: bool = sqlx::query_scalar(
+        r#"
+        SELECT EXISTS(
+            SELECT 1 FROM market_listings ml
+            JOIN characters c ON ml.seller_character_id = c.id
+            JOIN dynasties d ON c.dynasty_id = d.id
+            WHERE ml.id = $1 AND d.user_id = $2 AND ml.is_active = true
+        )
+        "#
+    )
+    .bind(listing_id)
+    .bind(user_id)
+    .fetch_one(&*pool)
+    .await?;
+    
+    if !owns_listing {
+        return Err(AppError::Forbidden);
+    }
+    
+    // Get listing details before canceling
+    let listing = sqlx::query!(
+        r#"
+        SELECT seller_character_id, item_id, quantity
+        FROM market_listings
+        WHERE id = $1
+        "#,
+        listing_id
+    )
+    .fetch_one(&*pool)
+    .await?;
+    
+    // Start transaction
+    let mut tx = pool.begin().await?;
+    
+    // Cancel the listing
+    sqlx::query!(
+        r#"
+        UPDATE market_listings
+        SET is_active = false
+        WHERE id = $1
+        "#,
+        listing_id
+    )
+    .execute(&mut *tx)
+    .await?;
+    
+    // Return items to character inventory
+    sqlx::query!(
+        r#"
+        INSERT INTO character_inventory (character_id, item_id, quantity)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (character_id, item_id)
+        DO UPDATE SET quantity = character_inventory.quantity + EXCLUDED.quantity
+        "#,
+        listing.seller_character_id,
+        listing.item_id,
+        listing.quantity
+    )
+    .execute(&mut *tx)
+    .await?;
+    
+    tx.commit().await?;
+    
+    Ok(StatusCode::NO_CONTENT)
+}

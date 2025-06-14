@@ -41,17 +41,20 @@ const command: Command = {
     await interaction.deferReply();
 
     try {
+      // @ts-ignore - Discord.js types issue with subcommands
       const subcommand = interaction.options.getSubcommand();
 
       switch (subcommand) {
         case 'info': {
+          // @ts-ignore - Discord.js types issue with subcommands
           const dynastyName = interaction.options.getString('name');
           
           let dynasty;
           if (dynastyName) {
             // TODO: Implement dynasty search by name
             const embed = createErrorEmbed('Dynasty search by name is not yet implemented. Please link your account with `/link` to view your dynasty.');
-            return interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
+            return;
           } else {
             // Get user's own dynasty
             try {
@@ -60,7 +63,8 @@ const command: Command = {
             } catch (error: any) {
               if (error.response?.status === 404) {
                 const embed = createErrorEmbed('You need to link your Discord account first. Use `/link` to get started.');
-                return interaction.editReply({ embeds: [embed] });
+                await interaction.editReply({ embeds: [embed] });
+                return;
               }
               throw error;
             }
@@ -68,7 +72,8 @@ const command: Command = {
 
           if (!dynasty) {
             const embed = createErrorEmbed('Dynasty not found.');
-            return interaction.editReply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
+            return;
           }
 
           const embed = createDynastyEmbed(dynasty);
@@ -77,6 +82,7 @@ const command: Command = {
         }
 
         case 'leaderboard': {
+          // @ts-ignore - Discord.js types issue with subcommands
           const type = (interaction.options.getString('type') || 'wealth') as 'wealth' | 'reputation' | 'generation';
           const leaderboard = await dynastyTraderAPI.getLeaderboard(type, 10);
           

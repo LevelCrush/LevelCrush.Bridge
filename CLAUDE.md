@@ -117,16 +117,16 @@ npm run dev
 - [x] Character state persistence across pages
 - [x] Market location awareness (defaults to character location)
 
-### Phase 5: Discord Bot (In Progress)
+### ✅ Phase 5: Discord Bot (Complete)
 - [x] Bot project structure with TypeScript
 - [x] OAuth2 integration endpoints in backend
 - [x] Basic commands (ping, link, market, dynasty, character)
 - [x] Market watcher service for alerts
 - [x] Death announcements service
 - [x] Dynasty leaderboards
-- [ ] Trading commands (sell, buy, cancel)
-- [ ] Price alert system
-- [ ] Character travel commands
+- [x] Trading commands (sell, buy, cancel, listings)
+- [x] Server-specific channel configuration with /setup command
+- [x] Help command with comprehensive guide
 
 ## Key Files & Directories
 

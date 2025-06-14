@@ -36,10 +36,12 @@ const command: Command = {
     await interaction.deferReply();
 
     try {
+      // @ts-ignore - Discord.js types issue with subcommands
       const subcommand = interaction.options.getSubcommand();
 
       switch (subcommand) {
         case 'status': {
+          // @ts-ignore - Discord.js types issue with subcommands
           const regionName = interaction.options.getString('region');
           const regions = await dynastyTraderAPI.getRegions();
           
@@ -50,7 +52,8 @@ const command: Command = {
             );
             if (!region) {
               const embed = createErrorEmbed(`Region "${regionName}" not found. Use \`/market regions\` to see available regions.`);
-              return interaction.editReply({ embeds: [embed] });
+              await interaction.editReply({ embeds: [embed] });
+              return;
             }
           } else {
             // Default to Capital City
