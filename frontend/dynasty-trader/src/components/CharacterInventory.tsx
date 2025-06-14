@@ -197,7 +197,7 @@ function CharacterInventoryDisplay({
             const itemInfo = inventoryItem.item_name ? {
               name: inventoryItem.item_name,
               description: inventoryItem.item_description || 'A valuable trade good',
-              category: (inventoryItem.category as ItemCategory) || ItemCategory.Material,
+              category: (inventoryItem.category as ItemCategory) || ItemCategory.RawMaterial,
               rarity: (inventoryItem.rarity as ItemRarity) || ItemRarity.Common
             } : getItemInfo(inventoryItem.item_id);
             const unitPrice = parseFloat(inventoryItem.acquired_price);

@@ -19,13 +19,11 @@ export enum ItemRarity {
 }
 
 export enum ItemCategory {
-  Food = 'food',
-  Material = 'material',
-  Weapon = 'weapon',
-  Armor = 'armor',
-  Tool = 'tool',
-  Luxury = 'luxury',
-  Artifact = 'artifact'
+  Food = 'Food',
+  RawMaterial = 'Raw Material',
+  Equipment = 'Equipment',
+  Luxury = 'Luxury',
+  Textile = 'Textile'
 }
 
 export interface MarketRegion {

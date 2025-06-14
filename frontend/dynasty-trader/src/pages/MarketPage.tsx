@@ -168,15 +168,13 @@ export default function MarketPage() {
     }
   };
 
-  const getCategoryColor = (category: ItemCategory) => {
-    const colors = {
+  const getCategoryColor = (category: ItemCategory | string) => {
+    const colors: Record<string, string> = {
       [ItemCategory.Food]: 'text-green-400',
-      [ItemCategory.Material]: 'text-blue-400',
-      [ItemCategory.Weapon]: 'text-red-400',
-      [ItemCategory.Armor]: 'text-purple-400',
-      [ItemCategory.Tool]: 'text-yellow-400',
+      [ItemCategory.RawMaterial]: 'text-blue-400',
+      [ItemCategory.Equipment]: 'text-red-400',
+      [ItemCategory.Textile]: 'text-yellow-400',
       [ItemCategory.Luxury]: 'text-pink-400',
-      [ItemCategory.Artifact]: 'text-dynasty-400',
     };
     return colors[category] || 'text-slate-400';
   };
@@ -319,7 +317,7 @@ export default function MarketPage() {
                         <option value="">All Categories</option>
                         {Object.values(ItemCategory).map((category) => (
                           <option key={category} value={category}>
-                            {category.charAt(0).toUpperCase() + category.slice(1)}
+                            {category}
                           </option>
                         ))}
                       </select>
@@ -424,7 +422,7 @@ export default function MarketPage() {
                         const itemInfo = listing.item_name ? {
                           name: listing.item_name,
                           description: listing.item_description || 'A valuable trade good',
-                          category: (listing.item_category as ItemCategory) || ItemCategory.Material,
+                          category: (listing.item_category as ItemCategory) || ItemCategory.RawMaterial,
                           rarity: (listing.item_rarity as ItemRarity) || ItemRarity.Common
                         } : getItemInfo(listing.item_id);
                         return (

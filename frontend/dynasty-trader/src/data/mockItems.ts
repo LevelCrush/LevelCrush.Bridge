@@ -22,72 +22,72 @@ export const mockItems: Record<string, { name: string; category: ItemCategory; r
     description: 'A lavish meal fit for nobility'
   },
 
-  // Materials
+  // Raw Materials
   'a1b2c3d4-0002-0002-0002-000000000001': {
     name: 'Iron Ore',
-    category: ItemCategory.Material,
+    category: ItemCategory.RawMaterial,
     rarity: ItemRarity.Common,
     description: 'Raw iron ore from the northern mines'
   },
   'a1b2c3d4-0002-0002-0002-000000000002': {
     name: 'Silver Ingot',
-    category: ItemCategory.Material,
+    category: ItemCategory.RawMaterial,
     rarity: ItemRarity.Uncommon,
     description: 'Refined silver ready for crafting'
   },
   'a1b2c3d4-0002-0002-0002-000000000003': {
     name: 'Mithril Ore',
-    category: ItemCategory.Material,
+    category: ItemCategory.RawMaterial,
     rarity: ItemRarity.Epic,
     description: 'Legendary metal with magical properties'
   },
 
-  // Weapons
+  // Equipment (Weapons)
   'a1b2c3d4-0003-0003-0003-000000000001': {
     name: 'Iron Sword',
-    category: ItemCategory.Weapon,
+    category: ItemCategory.Equipment,
     rarity: ItemRarity.Common,
     description: 'A basic but reliable weapon'
   },
   'a1b2c3d4-0003-0003-0003-000000000002': {
     name: 'Steel Battleaxe',
-    category: ItemCategory.Weapon,
+    category: ItemCategory.Equipment,
     rarity: ItemRarity.Uncommon,
     description: 'Heavy two-handed weapon'
   },
   'a1b2c3d4-0003-0003-0003-000000000003': {
     name: 'Dragonbane',
-    category: ItemCategory.Weapon,
+    category: ItemCategory.Equipment,
     rarity: ItemRarity.Legendary,
     description: 'Ancient blade forged to slay dragons'
   },
 
-  // Armor
+  // Equipment (Armor)
   'a1b2c3d4-0004-0004-0004-000000000001': {
     name: 'Leather Vest',
-    category: ItemCategory.Armor,
+    category: ItemCategory.Equipment,
     rarity: ItemRarity.Common,
     description: 'Light protection for travelers'
   },
   'a1b2c3d4-0004-0004-0004-000000000002': {
     name: 'Chainmail',
-    category: ItemCategory.Armor,
+    category: ItemCategory.Equipment,
     rarity: ItemRarity.Uncommon,
     description: 'Interlocking metal rings for defense'
   },
 
-  // Tools
+  // Textile
   'a1b2c3d4-0005-0005-0005-000000000001': {
-    name: 'Mining Pick',
-    category: ItemCategory.Tool,
+    name: 'Cotton Fabric',
+    category: ItemCategory.Textile,
     rarity: ItemRarity.Common,
-    description: 'Essential tool for extracting ore'
+    description: 'Basic fabric for everyday clothing'
   },
   'a1b2c3d4-0005-0005-0005-000000000002': {
-    name: 'Master Lockpicks',
-    category: ItemCategory.Tool,
+    name: 'Velvet Cloth',
+    category: ItemCategory.Textile,
     rarity: ItemRarity.Rare,
-    description: 'Finely crafted tools for delicate work'
+    description: 'Luxurious fabric favored by nobility'
   },
 
   // Luxury
@@ -110,22 +110,22 @@ export const mockItems: Record<string, { name: string; category: ItemCategory; r
     description: 'Exquisite jewelry with perfect gems'
   },
 
-  // Artifacts
+  // Additional Luxury items (Artifacts now mapped to Luxury)
   'a1b2c3d4-0007-0007-0007-000000000001': {
     name: 'Ancient Scroll',
-    category: ItemCategory.Artifact,
+    category: ItemCategory.Luxury,
     rarity: ItemRarity.Rare,
     description: 'Knowledge from a forgotten age'
   },
   'a1b2c3d4-0007-0007-0007-000000000002': {
     name: 'Crystal Orb',
-    category: ItemCategory.Artifact,
+    category: ItemCategory.Luxury,
     rarity: ItemRarity.Epic,
     description: 'Mystical sphere pulsing with energy'
   },
   'a1b2c3d4-0007-0007-0007-000000000003': {
     name: 'Crown of Kings',
-    category: ItemCategory.Artifact,
+    category: ItemCategory.Luxury,
     rarity: ItemRarity.Legendary,
     description: 'Symbol of ultimate power and authority'
   }
@@ -142,7 +142,7 @@ export function getItemInfo(itemId: string) {
   const shortId = itemId.slice(0, 8);
   return {
     name: `Item ${shortId}`,
-    category: ItemCategory.Material,
+    category: ItemCategory.RawMaterial,
     rarity: ItemRarity.Common,
     description: 'An unidentified trade good'
   };
@@ -167,22 +167,23 @@ export function getRarityColor(rarity: ItemRarity): string {
 }
 
 // Get category icon (using emoji for now)
-export function getCategoryIcon(category: ItemCategory): string {
+export function getCategoryIcon(category: ItemCategory | string): string {
   switch (category) {
     case ItemCategory.Food:
+    case 'Food':
       return '🍞';
-    case ItemCategory.Material:
+    case ItemCategory.RawMaterial:
+    case 'Raw Material':
       return '⛏️';
-    case ItemCategory.Weapon:
+    case ItemCategory.Equipment:
+    case 'Equipment':
       return '⚔️';
-    case ItemCategory.Armor:
-      return '🛡️';
-    case ItemCategory.Tool:
-      return '🔧';
+    case ItemCategory.Textile:
+    case 'Textile':
+      return '🧵';
     case ItemCategory.Luxury:
+    case 'Luxury':
       return '💎';
-    case ItemCategory.Artifact:
-      return '📜';
     default:
       return '📦';
   }

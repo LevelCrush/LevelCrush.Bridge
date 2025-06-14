@@ -29,7 +29,7 @@ export default function SellItemModal({ item, characterId, onClose }: SellItemMo
   const itemInfo = item.item_name ? {
     name: item.item_name,
     description: item.item_description || 'A valuable trade good',
-    category: (item.category as ItemCategory) || ItemCategory.Material,
+    category: (item.category as ItemCategory) || ItemCategory.RawMaterial,
     rarity: (item.rarity as ItemRarity) || ItemRarity.Common
   } : getItemInfo(item.item_id);
   const acquiredPrice = parseFloat(item.acquired_price);

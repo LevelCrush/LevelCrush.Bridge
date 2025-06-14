@@ -58,7 +58,7 @@ export default function MarketItemModal({
   const itemInfo = listing.item_name ? {
     name: listing.item_name,
     description: listing.item_description || 'A valuable trade good',
-    category: (listing.item_category as ItemCategory) || ItemCategory.Material,
+    category: (listing.item_category as ItemCategory) || ItemCategory.RawMaterial,
     rarity: (listing.item_rarity as ItemRarity) || ItemRarity.Common
   } : getItemInfo(listing.item_id);
 

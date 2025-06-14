@@ -32,7 +32,7 @@ export default function ItemDetailsModal({ item, isOpen, onClose }: ItemDetailsM
   const itemInfo = item.item_name ? {
     name: item.item_name,
     description: item.item_description || 'A valuable trade good',
-    category: (item.item_category as ItemCategory) || ItemCategory.Material,
+    category: (item.item_category as ItemCategory) || ItemCategory.RawMaterial,
     rarity: (item.item_rarity as ItemRarity) || ItemRarity.Common,
     basePrice: item.item_base_price,
     weight: item.item_weight
