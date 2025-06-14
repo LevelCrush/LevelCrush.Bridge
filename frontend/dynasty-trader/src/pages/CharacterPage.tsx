@@ -6,6 +6,7 @@ import { marketService } from '@/services/market';
 import { Character, CharacterStats } from '@/types';
 import CharacterInventory from '@/components/CharacterInventory';
 import TransactionHistory from '@/components/TransactionHistory';
+import CharacterStatsDisplay from '@/components/CharacterStats';
 import TravelModal from '@/components/TravelModal';
 import { useCharacterStore } from '@/stores/characterStore';
 import { 
@@ -351,6 +352,9 @@ export default function CharacterPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Character Stats */}
+              <CharacterStatsDisplay character={selectedCharacter} />
 
               {/* Character Inventory */}
               <CharacterInventory character={selectedCharacter} />
