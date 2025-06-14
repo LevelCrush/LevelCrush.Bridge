@@ -1,10 +1,10 @@
 import { api } from '@/lib/api';
 
 export interface MarketOverview {
-  total_market_cap: number;
-  total_volume_24h: number;
+  total_market_cap: number | string;
+  total_volume_24h: number | string;
   active_listings: number;
-  price_change_percent: number;
+  price_change_percent: number | string;
   top_gainers: TopMover[];
   top_losers: TopMover[];
   volatile_items: VolatileItem[];
@@ -15,9 +15,9 @@ export interface TopMover {
   item_id: string;
   item_name: string;
   category: string;
-  current_price: number;
-  price_change: number;
-  price_change_percent: number;
+  current_price: number | string;
+  price_change: number | string;
+  price_change_percent: number | string;
   volume_24h: number;
 }
 
@@ -25,9 +25,10 @@ export interface VolatileItem {
   item_id: string;
   item_name: string;
   category: string;
-  current_price: number;
-  volatility: number;
+  current_price: number | string;
+  volatility: number | string;
   volume_24h: number;
+  price_change_percent?: number | string;
 }
 
 export interface ArbitrageOpportunity {
@@ -37,31 +38,31 @@ export interface ArbitrageOpportunity {
   buy_region_name: string;
   sell_region_id: string;
   sell_region_name: string;
-  buy_price: number;
-  sell_price: number;
-  profit_margin: number;
-  profit_after_taxes: number;
-  buy_region_tax_rate: number;
-  sell_region_tax_rate: number;
+  buy_price: number | string;
+  sell_price: number | string;
+  profit_margin: number | string;
+  profit_after_taxes: number | string;
+  buy_region_tax_rate: number | string;
+  sell_region_tax_rate: number | string;
 }
 
 export interface RegionalAnalytics {
   region_id: string;
   region_name: string;
-  total_volume_24h: number;
-  avg_price_change: number;
+  total_volume_24h: number | string;
+  avg_price_change: number | string;
   active_listings: number;
   market_health: 'strong' | 'moderate' | 'weak';
   dominant_categories: string[];
   top_items_by_volume: TopItemByVolume[];
-  liquidity_score: number;
+  liquidity_score: number | string;
 }
 
 export interface TopItemByVolume {
   item_id: string;
   item_name: string;
   volume_24h: number;
-  avg_price: number;
+  avg_price: number | string;
 }
 
 export interface TechnicalIndicators {
@@ -151,11 +152,15 @@ export const marketAnalyticsService = {
     sellTotal: number;
     totalTaxes: number;
   } {
-    const buyTotal = opportunity.buy_price * quantity * (1 + opportunity.buy_region_tax_rate);
-    const sellTotal = opportunity.sell_price * quantity * (1 - opportunity.sell_region_tax_rate);
-    const grossProfit = (opportunity.sell_price - opportunity.buy_price) * quantity;
-    const totalTaxes = (opportunity.buy_price * opportunity.buy_region_tax_rate + 
-                       opportunity.sell_price * opportunity.sell_region_tax_rate) * quantity;
+    const buyPrice = typeof opportunity.buy_price === 'string' ? parseFloat(opportunity.buy_price) : opportunity.buy_price;
+    const sellPrice = typeof opportunity.sell_price === 'string' ? parseFloat(opportunity.sell_price) : opportunity.sell_price;
+    const buyTaxRate = typeof opportunity.buy_region_tax_rate === 'string' ? parseFloat(opportunity.buy_region_tax_rate) : opportunity.buy_region_tax_rate;
+    const sellTaxRate = typeof opportunity.sell_region_tax_rate === 'string' ? parseFloat(opportunity.sell_region_tax_rate) : opportunity.sell_region_tax_rate;
+    
+    const buyTotal = buyPrice * quantity * (1 + buyTaxRate);
+    const sellTotal = sellPrice * quantity * (1 - sellTaxRate);
+    const grossProfit = (sellPrice - buyPrice) * quantity;
+    const totalTaxes = (buyPrice * buyTaxRate + sellPrice * sellTaxRate) * quantity;
     const netProfit = sellTotal - buyTotal;
 
     return {

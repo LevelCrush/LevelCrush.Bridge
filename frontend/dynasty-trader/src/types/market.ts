@@ -73,13 +73,22 @@ export interface MarketPrice {
   last_updated: string;
 }
 
+// Price history data point from the backend
+export interface PriceHistoryPoint {
+  time: string;
+  avg_price: string;
+  min_price: string;
+  max_price: string;
+  volume: number;
+}
+
 export interface CreateMarketListingRequest {
   character_id?: string;
   region_id: string;
   item_id: string;
-  price: string; // Decimal as string
+  price: number; // Price as number (backend expects f64)
   quantity: number;
-  expires_in_hours?: number;
+  expires_in_days?: number; // Changed from hours to days
 }
 
 export interface PurchaseRequest {

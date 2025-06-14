@@ -49,10 +49,18 @@ export default function MarketAnalyticsPage() {
     queryKey: ['price-history', selectedItem?.regionId, selectedItem?.itemId, selectedTimeFrame],
     queryFn: async () => {
       if (!selectedItem) return [];
+      // Convert timeframe to hours
+      const timeframeHours: Record<TimeFrame, number> = {
+        '1H': 1,
+        '4H': 4,
+        '1D': 24,
+        '1W': 168,
+        '1M': 720,
+      };
       const response = await marketService.getPriceHistory(
         selectedItem.regionId,
         selectedItem.itemId,
-        { timeframe: selectedTimeFrame }
+        timeframeHours[selectedTimeFrame]
       );
       return response;
     },
@@ -183,12 +191,17 @@ export default function MarketAnalyticsPage() {
                         <p className="text-xs text-slate-400">{item.category}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-mono text-white">{item.current_price ? parseFloat(item.current_price).toFixed(2) : '0.00'}</p>
+                        <p className="text-sm font-mono text-white">{item.current_price ? parseFloat(item.current_price.toString()).toFixed(2) : '0.00'}</p>
                         <p className={cn(
                           "text-xs",
-                          parseFloat(item.price_change_percent) >= 0 ? "text-green-400" : "text-red-400"
+                          'price_change_percent' in item && item.price_change_percent !== undefined
+                            ? parseFloat(item.price_change_percent.toString()) >= 0 ? "text-green-400" : "text-red-400"
+                            : "text-slate-400"
                         )}>
-                          {parseFloat(item.price_change_percent) >= 0 ? '+' : ''}{item.price_change_percent ? parseFloat(item.price_change_percent).toFixed(1) : '0.0'}%
+                          {'price_change_percent' in item && item.price_change_percent !== undefined
+                            ? `${parseFloat(item.price_change_percent.toString()) >= 0 ? '+' : ''}${parseFloat(item.price_change_percent.toString()).toFixed(1)}%`
+                            : 'volatility' in item ? `Vol: ${parseFloat(item.volatility.toString()).toFixed(1)}%` : 'N/A'
+                          }
                         </p>
                       </div>
                     </button>
@@ -243,7 +256,15 @@ export default function MarketAnalyticsPage() {
                   <LoadingSkeleton className="h-96" />
                 ) : (
                   <EnhancedPriceChart
-                    data={priceData || []}
+                    data={(priceData || []).map(p => ({
+                      timestamp: p.time,
+                      open: parseFloat(p.avg_price),
+                      high: parseFloat(p.max_price),
+                      low: parseFloat(p.min_price),
+                      close: parseFloat(p.avg_price),
+                      volume: p.volume,
+                      avg_price: parseFloat(p.avg_price),
+                    }))}
                     indicators={indicators || []}
                     timeFrame={selectedTimeFrame}
                     chartType={selectedChartType}
@@ -270,19 +291,19 @@ export default function MarketAnalyticsPage() {
                       <div className="flex justify-between">
                         <span className="text-slate-400">Current:</span>
                         <span className="text-white font-mono">
-                          {priceData?.[priceData.length - 1]?.close?.toFixed(2) || '--'}
+                          {priceData?.[priceData.length - 1]?.avg_price ? parseFloat(priceData[priceData.length - 1].avg_price).toFixed(2) : '--'}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">24h High:</span>
                         <span className="text-green-400 font-mono">
-                          {Math.max(...(priceData?.map(p => p.high) || [0])).toFixed(2)}
+                          {Math.max(...(priceData?.map(p => parseFloat(p.max_price)) || [0])).toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">24h Low:</span>
                         <span className="text-red-400 font-mono">
-                          {Math.min(...(priceData?.map(p => p.low) || [0])).toFixed(2)}
+                          {Math.min(...(priceData?.map(p => parseFloat(p.min_price)) || [0])).toFixed(2)}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -301,28 +322,28 @@ export default function MarketAnalyticsPage() {
                       Technical Analysis
                     </h4>
                     <div className="space-y-2 text-sm">
-                      {indicators?.length > 0 && (
+                      {indicators && indicators.length > 0 && (
                         <>
                           <div className="flex justify-between">
                             <span className="text-slate-400">RSI:</span>
                             <span className={cn(
                               "font-mono",
-                              indicators[indicators.length - 1]?.rsi > 70 ? "text-red-400" :
-                              indicators[indicators.length - 1]?.rsi < 30 ? "text-green-400" : "text-yellow-400"
+                              (indicators[indicators.length - 1]?.rsi ?? 0) > 70 ? "text-red-400" :
+                              (indicators[indicators.length - 1]?.rsi ?? 0) < 30 ? "text-green-400" : "text-yellow-400"
                             )}>
-                              {indicators[indicators.length - 1]?.rsi?.toFixed(1) || '--'}
+                              {indicators[indicators.length - 1]?.rsi !== undefined ? indicators[indicators.length - 1].rsi!.toFixed(1) : '--'}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-400">SMA 7:</span>
                             <span className="text-blue-400 font-mono">
-                              {indicators[indicators.length - 1]?.sma_7?.toFixed(2) || '--'}
+                              {indicators[indicators.length - 1]?.sma_7 !== undefined ? indicators[indicators.length - 1].sma_7!.toFixed(2) : '--'}
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-slate-400">SMA 14:</span>
                             <span className="text-purple-400 font-mono">
-                              {indicators[indicators.length - 1]?.sma_14?.toFixed(2) || '--'}
+                              {indicators[indicators.length - 1]?.sma_14 !== undefined ? indicators[indicators.length - 1].sma_14!.toFixed(2) : '--'}
                             </span>
                           </div>
                         </>
