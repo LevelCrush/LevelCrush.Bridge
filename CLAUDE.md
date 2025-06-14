@@ -99,6 +99,11 @@ npm run dev
 - [x] Market item detail modal
 - [x] Mobile-optimized UI
 - [x] PWA manifest and service worker
+- [x] Character inventory with sell functionality
+- [x] Transaction history with expandable details
+- [x] Travel between regions
+- [x] Category filters with proper backend integration
+- [x] Character state persistence across pages
 
 ### Phase 5: Discord Bot (Upcoming)
 - [ ] OAuth2 integration
@@ -156,6 +161,9 @@ bridge/                          # Project root
 - `GET /api/v2/characters` - Get dynasty characters
 - `GET /api/v2/characters/:id` - Get character details
 - `GET /api/v2/characters/:id/stats` - Get character stats (includes wealth)
+- `GET /api/v2/characters/:id/inventory` - Get character inventory
+- `GET /api/v2/characters/:id/transactions` - Get character transaction history
+- `POST /api/v2/characters/:id/travel` - Travel to a new region
 - `POST /api/v2/characters/:id/death` - Process character death
 
 #### Market System
@@ -295,6 +303,8 @@ This project is transitioning from a multi-game inventory bridge to a groundbrea
 - **Purchase database constraint error** - Fixed by setting is_active=false instead of quantity=0 when all items purchased
 - **Item names showing as hashes in purchase modal** - Fixed by using listing data instead of mock lookup
 - **Characters without locations** - Fixed by defaulting new characters to Capital City and migrating existing characters
+- **Category filter not working** - Fixed by updating ItemCategory enum to match database values (Food, Raw Material, Equipment, Luxury, Textile)
+- **Marketplace character dropdown not updating** - Fixed by implementing Zustand store to persist selected character across pages
 
 ### Current Frontend Features
 - JWT authentication with automatic token refresh

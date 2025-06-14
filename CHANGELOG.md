@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - Dynasty Trader
 
+### Recent Improvements (2025-06-14)
+
+#### Added
+- **Character Travel System**
+  - Implemented travel functionality allowing characters to move between regions
+  - Added POST `/api/v2/characters/:id/travel` endpoint
+  - Created TravelModal component with region comparison display
+  - Shows current location, destination details, and region statistics
+  - Characters cannot travel when dead (proper validation)
+
+- **Market Category Filters**
+  - Implemented working category filters in marketplace
+  - Fixed category mismatch between frontend enum and database values
+  - Categories now properly filter listings (Food, Raw Material, Equipment, Luxury, Textile)
+  - Fixed "food" showing no results by updating frontend to match capitalized database values
+
+- **Character State Persistence**
+  - Added Zustand store for persisting selected character across pages
+  - Marketplace now remembers selected character when navigating from character page
+  - "Trade" button on character page correctly pre-selects character in marketplace
+  - Character selection persists in localStorage for better UX
+
+- **Marketplace Enhancements**
+  - Added "Trading As" display showing selected character in marketplace
+  - Auto-select first region when marketplace loads
+  - Character dropdown now shows accurate gold values
+  - Region selection converted to dropdown for space efficiency
+
+#### Fixed
+- **Aging System Balance**
+  - Fixed overly aggressive aging causing characters to die too young
+  - Adjusted aging formula to be more gradual and realistic
+  - Characters now have reasonable lifespans allowing for meaningful gameplay
+  - Health and stamina degradation now more balanced
+
+- **Frontend Build Issues**
+  - Fixed PWA service worker and manifest generation
+  - Build output now includes proper icon files and manifest
+  - Service worker correctly caches assets for offline support
+
 ### Bug Fixes and Improvements (2025-06-13)
 
 #### Fixed
@@ -348,17 +388,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Frontend Roadmap
 
 ### Immediate Next Steps
-- [ ] WebSocket integration for real-time market updates
-- [ ] Character death notifications and UI updates
-- [ ] Market price charts with historical data
-- [ ] Mobile-optimized responsive design
-- [ ] PWA manifest and service worker
-- [ ] Offline capability with sync
+- [x] WebSocket integration for real-time market updates
+- [x] Character death notifications and UI updates
+- [x] Market price charts with historical data
+- [x] Mobile-optimized responsive design
+- [x] PWA manifest and service worker
+- [x] Offline capability with sync
+- [x] Character inventory management
+- [x] Character travel between regions
+- [x] Market category filters
+- [ ] Trade route visualization
 
 ### Future Enhancements
-- [ ] Character inventory management
-- [ ] Trade route visualization
 - [ ] Dynasty alliance system
 - [ ] Achievement/perk display
-- [ ] Market event notifications
+- [ ] Market event detailed views
 - [ ] Ghost character interactions
+- [ ] Character relationships
+- [ ] Caravan management
+- [ ] Regional reputation system
+- [ ] Dynasty perks and upgrades

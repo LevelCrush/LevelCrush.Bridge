@@ -14,6 +14,9 @@ A revolutionary roguelike economy game where death drives markets and players bu
 - **Character Inventory**: View items, sell to market, track values
 - **Market Interface**: Browse regional markets, view listings, make purchases
 - **Transaction History**: Track all buy/sell transactions with profit/loss
+- **Travel System**: Move characters between regions with visual feedback
+- **Category Filters**: Filter market listings by item type (Food, Equipment, etc.)
+- **Character Persistence**: Selected character persists across navigation
 - **Real-time Updates**: WebSocket integration for live market data
 - **Data Visualization**: Interactive price charts with Recharts
 - **Enhanced UX**: Loading skeletons, smooth animations, error handling
@@ -149,6 +152,9 @@ cargo doc --open         # Generate documentation
 - Create Character: `POST /api/v2/characters`
 - Get Characters: `GET /api/v2/characters`
 - Get Character Stats: `GET /api/v2/characters/:id/stats`
+- Get Character Inventory: `GET /api/v2/characters/:id/inventory`
+- Get Character Transactions: `GET /api/v2/characters/:id/transactions`
+- Travel to Region: `POST /api/v2/characters/:id/travel`
 
 #### Market System
 - Get Regions: `GET /api/v2/market/regions`
