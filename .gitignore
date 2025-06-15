@@ -15,6 +15,7 @@ Cargo.lock
 
 # Environment files
 .env
+.env.*
 
 # IDE
 .vscode/
