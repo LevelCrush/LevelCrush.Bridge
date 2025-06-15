@@ -8,7 +8,8 @@ import {
   UsersIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline';
 import { Skull, BarChart3 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
@@ -29,6 +30,7 @@ const navigation = [
   },
   { name: 'Dynasty', href: '/dynasty', icon: UsersIcon },
   { name: 'Deaths', href: '/deaths', icon: Skull },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
 ];
 
 export default function Layout() {

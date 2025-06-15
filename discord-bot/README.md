@@ -4,12 +4,13 @@ A Discord bot integration for Dynasty Trader - a roguelike economy game where de
 
 ## Features
 
-- **OAuth2 Integration**: Link Discord accounts with Dynasty Trader accounts
+- **OAuth2 Integration**: Link Discord accounts with Dynasty Trader accounts via web app
 - **Market Alerts**: Real-time notifications for market events and price changes
 - **Death Announcements**: Automatic notifications when characters die, showing market impact
 - **Trading Commands**: Execute trades directly from Discord
 - **Dynasty Leaderboards**: View top dynasties and their statistics
 - **Character Info**: Check character stats, inventory, and location
+- **Frontend Integration**: Account linking managed through Settings page in web app
 
 ## Setup
 
@@ -141,12 +142,14 @@ The bot communicates with the Dynasty Trader backend API. All API calls should g
 
 ### OAuth2 Flow
 
-1. User runs `/link` command
-2. Bot generates OAuth2 URL with state parameter
-3. User authorizes on Dynasty Trader website
-4. Dynasty Trader redirects back with auth code
-5. Bot exchanges code for access token
-6. Bot stores Discord ID <-> Dynasty Trader account mapping
+1. User navigates to Settings page in Dynasty Trader web app
+2. User clicks "Link Discord Account" button
+3. Frontend redirects to Discord OAuth2 authorization page
+4. User authorizes Dynasty Trader application
+5. Discord redirects back to Dynasty Trader with auth code
+6. Backend exchanges code for Discord user info and creates link
+7. Frontend updates to show linked Discord account
+8. User can now use Discord bot commands
 
 ## Server Configuration
 
@@ -163,16 +166,27 @@ Server admins can use:
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| DISCORD_TOKEN | Bot token from Discord | Yes |
-| DISCORD_CLIENT_ID | Application client ID | Yes |
-| DYNASTY_TRADER_API_URL | Backend API URL | Yes |
-| DATABASE_URL | PostgreSQL connection string | No* |
-| OAUTH2_REDIRECT_URI | OAuth2 callback URL | Yes |
-| LOG_LEVEL | Logging level (debug/info/warn/error) | No |
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| DISCORD_TOKEN | Bot token from Discord | Yes | - |
+| DISCORD_CLIENT_ID | Application client ID | Yes | - |
+| DYNASTY_TRADER_API_URL | Backend API URL | Yes | - |
+| DATABASE_URL | PostgreSQL connection string | No* | - |
+| OAUTH2_REDIRECT_URI | OAuth2 callback URL | Yes | - |
+| LOG_LEVEL | Logging level (debug/info/warn/error) | No | info |
+| NODE_ENV | Environment (development/production) | No | production |
+| DEPLOY_COMMANDS_ON_START | Deploy slash commands on bot startup | No | false |
 
 *Database is optional - bot will use in-memory storage if not available
+
+### Automatic Command Deployment
+
+By default, commands are NOT deployed on startup to avoid hitting Discord's rate limits. You can enable automatic deployment in two ways:
+
+1. **Set NODE_ENV to development**: `NODE_ENV=development`
+2. **Enable explicitly**: `DEPLOY_COMMANDS_ON_START=true`
+
+**⚠️ Warning**: Discord has rate limits for command updates (200 updates per day). Only enable auto-deployment during development or when you need commands to update frequently.
 
 ## Contributing
 

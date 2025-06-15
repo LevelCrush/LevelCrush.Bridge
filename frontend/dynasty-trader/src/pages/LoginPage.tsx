@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { FormField, Input } from '@/components/FormField';
@@ -8,6 +8,7 @@ import { validateEmail, validatePassword } from '@/utils/validation';
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,7 +24,9 @@ export default function LoginPage() {
     password?: boolean;
   }>({});
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  // Check for return URL in query params first, then location state
+  const returnUrl = searchParams.get('return');
+  const from = returnUrl || location.state?.from?.pathname || '/dashboard';
 
   const validateForm = () => {
     const newErrors: typeof errors = {};

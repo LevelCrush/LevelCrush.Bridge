@@ -39,6 +39,8 @@ pub struct UserResponse {
     pub username: String,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub discord_id: Option<String>,
+    pub discord_username: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -56,6 +58,8 @@ impl From<User> for UserResponse {
             username: user.username,
             created_at: user.created_at,
             updated_at: user.updated_at,
+            discord_id: user.discord_id,
+            discord_username: user.discord_username,
         }
     }
 }
@@ -302,7 +306,46 @@ pub async fn logout(
     Ok(StatusCode::NO_CONTENT)
 }
 
-pub async fn verify_token() -> StatusCode {
+pub async fn verify_token(
+    State(pool): State<Arc<PgPool>>,
+    Extension(claims): Extension<Claims>,
+) -> Result<Json<UserResponse>, AppError> {
     // If we get here, the auth middleware has already validated the token
-    StatusCode::OK
+    // Let's return the user data
+    let user_id = claims.sub.parse::<Uuid>()
+        .map_err(|_| AppError::Authentication("Invalid user ID".to_string()))?;
+    
+    let user = sqlx::query!(
+        r#"
+        SELECT id, username, email, password_hash, discord_id, discord_username, 
+               discord_avatar, created_at, updated_at, last_login, is_active, 
+               email_verified, verification_token, reset_token, reset_token_expires
+        FROM users 
+        WHERE id = $1
+        "#,
+        user_id
+    )
+    .fetch_optional(pool.as_ref())
+    .await?
+    .ok_or_else(|| AppError::NotFound("User not found".to_string()))?;
+    
+    let user = User {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        password_hash: user.password_hash,
+        discord_id: user.discord_id,
+        discord_username: user.discord_username,
+        discord_avatar: user.discord_avatar,
+        created_at: user.created_at.unwrap_or_else(|| chrono::Utc::now()),
+        updated_at: user.updated_at.unwrap_or_else(|| chrono::Utc::now()),
+        last_login: user.last_login,
+        is_active: user.is_active.unwrap_or(true),
+        email_verified: user.email_verified.unwrap_or(false),
+        verification_token: user.verification_token,
+        reset_token: user.reset_token,
+        reset_token_expires: user.reset_token_expires,
+    };
+    
+    Ok(Json(UserResponse::from(user)))
 }

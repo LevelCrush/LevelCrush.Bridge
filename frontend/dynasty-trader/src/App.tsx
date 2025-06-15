@@ -13,6 +13,8 @@ import MarketPage from '@/pages/MarketPage';
 import DynastyPage from '@/pages/DynastyPage';
 import RecentDeathsPage from '@/pages/RecentDeathsPage';
 import MarketAnalyticsPage from '@/pages/MarketAnalyticsPage';
+import SettingsPage from '@/pages/SettingsPage';
+import DiscordLinkPage from '@/pages/DiscordLinkPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { WebSocketProvider } from '@/contexts/WebSocketContext';
@@ -38,6 +40,7 @@ function App() {
                 <Route index element={<HomePage />} />
                 <Route path="login" element={<LoginPage />} />
                 <Route path="register" element={<RegisterPage />} />
+                <Route path="discord-link" element={<DiscordLinkPage />} />
                 
                 <Route element={<ProtectedRoute />}>
                   <Route path="dashboard" element={<DashboardPage />} />
@@ -46,6 +49,7 @@ function App() {
                   <Route path="market-analytics" element={<MarketAnalyticsPage />} />
                   <Route path="dynasty" element={<DynastyPage />} />
                   <Route path="deaths" element={<RecentDeathsPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
                 </Route>
               </Route>
               

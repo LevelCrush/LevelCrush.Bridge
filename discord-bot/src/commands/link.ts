@@ -1,13 +1,10 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction } from 'discord.js';
+import { CommandInteraction, EmbedBuilder } from 'discord.js';
 import { Command } from '../types/index.js';
+import { createSuccessEmbed, createErrorEmbed, Colors } from '../utils/embeds.js';
 import { dynastyTraderAPI } from '../services/api.js';
-import { createErrorEmbed, createSuccessEmbed } from '../utils/embeds.js';
 import { logger } from '../utils/logger.js';
-import crypto from 'crypto';
-
-// In production, this should be stored in a database
-const oauthStates = new Map<string, { discordId: string; timestamp: number }>();
+import * as crypto from 'crypto';
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -31,48 +28,48 @@ const command: Command = {
         }
       }
 
-      // Generate OAuth2 state
+      // Generate a secure state token
       const state = crypto.randomBytes(32).toString('hex');
-      oauthStates.set(state, {
-        discordId: interaction.user.id,
-        timestamp: Date.now(),
-      });
-
-      // Clean up old states (older than 10 minutes)
-      const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
-      for (const [key, value] of oauthStates.entries()) {
-        if (value.timestamp < tenMinutesAgo) {
-          oauthStates.delete(key);
-        }
-      }
-
-      // Build OAuth2 URL
-      const baseUrl = process.env.DYNASTY_TRADER_WEB_URL || 'http://localhost:5173';
+      
+      // Build the link URL
+      const frontendUrl = process.env.DYNASTY_TRADER_FRONTEND_URL || 'http://localhost:3000';
       const params = new URLSearchParams({
-        response_type: 'code',
-        client_id: 'discord-bot',
-        redirect_uri: process.env.OAUTH2_REDIRECT_URI || 'http://localhost:3000/auth/discord/callback',
-        state,
-        scope: 'profile',
+        discord_id: interaction.user.id,
+        discord_username: interaction.user.username,
+        state: state
       });
+      
+      const linkUrl = `${frontendUrl}/discord-link?${params.toString()}`;
 
-      const authUrl = `${baseUrl}/auth/discord?${params.toString()}`;
-
-      const embed = createSuccessEmbed(
-        'Link Your Account',
-        `Click the link below to connect your Discord account to Dynasty Trader:\n\n[🔗 Link Account](${authUrl})\n\nThis link will expire in 10 minutes.`
-      );
+      // Create the embed with the direct link
+      const embed = new EmbedBuilder()
+        .setColor(Colors.Info)
+        .setTitle('🔗 Link Your Discord Account')
+        .setDescription('Click the button below to link your Discord account to Dynasty Trader!')
+        .addFields(
+          {
+            name: '📱 Quick Link',
+            value: `[Click here to link your account](${linkUrl})`,
+            inline: false
+          },
+          {
+            name: '📝 Your Discord Info',
+            value: `**Username:** ${interaction.user.username}\n**ID:** \`${interaction.user.id}\``,
+            inline: false
+          }
+        )
+        .setFooter({ 
+          text: 'This link will expire in 10 minutes' 
+        })
+        .setTimestamp();
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (error) {
       logger.error('Error in link command:', error);
-      const embed = createErrorEmbed('An error occurred while generating the link. Please try again later.');
+      const embed = createErrorEmbed('An error occurred while checking your link status. Please try again later.');
       await interaction.reply({ embeds: [embed], ephemeral: true });
     }
   },
 };
 
 export default command;
-
-// Export for use in OAuth callback handler
-export { oauthStates };

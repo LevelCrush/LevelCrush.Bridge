@@ -2,6 +2,32 @@
 
 All notable changes to the Dynasty Trader frontend will be documented in this file.
 
+## [0.5.0] - 2025-06-14
+
+### Added
+- **Discord Integration**
+  - Settings page with Discord account linking
+  - Visual connection status with Discord avatar and username
+  - Link/unlink functionality with confirmation dialogs
+  - OAuth2 integration for secure account connection
+  - Real-time sync status after linking/unlinking
+  - Automatic user data refresh on connection changes
+  - Integration enables trading directly from Discord
+
+### Fixed
+- **Authentication & State Management**
+  - Fixed infinite loop in useAuth when token refresh fails
+  - Improved error handling in auth context with proper type safety
+  - Fixed WebSocket connection issues by moving it after auth loading
+  - Resolved refresh token flow to properly handle expired tokens
+  - Enhanced auth state cleanup on logout
+
+### Technical Improvements
+- Added Discord service for OAuth operations
+- Created settings store for Discord connection state
+- Improved type safety in auth context
+- Better error boundary handling for auth failures
+
 ## [0.4.0] - 2025-06-14
 
 ### Added

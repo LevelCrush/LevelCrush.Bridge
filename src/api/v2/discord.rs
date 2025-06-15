@@ -15,12 +15,15 @@ use crate::utils::{AppError, Claims};
 pub struct LinkDiscordRequest {
     pub user_id: Uuid,
     pub discord_id: String,
+    pub discord_username: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct LinkDiscordResponse {
     pub success: bool,
     pub message: String,
+    pub discord_id: Option<String>,
+    pub discord_username: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -59,18 +62,30 @@ pub async fn link_discord_account(
                 Json(LinkDiscordResponse {
                     success: false,
                     message: "This Discord account is already linked to another user".to_string(),
+                    discord_id: None,
+                    discord_username: None,
                 }),
             ));
         }
     }
 
-    // Update user with Discord ID
+    // Update user with Discord ID and username
     sqlx::query!(
-        "UPDATE users SET discord_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
+        "UPDATE users SET discord_id = $1, discord_username = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
         payload.discord_id,
+        payload.discord_username,
         user_id
     )
     .execute(pool.as_ref())
+    .await
+    .map_err(|e| AppError::Database(e))?;
+
+    // Fetch the updated user to get discord_username
+    let updated_user = sqlx::query!(
+        "SELECT discord_id, discord_username FROM users WHERE id = $1",
+        user_id
+    )
+    .fetch_one(pool.as_ref())
     .await
     .map_err(|e| AppError::Database(e))?;
 
@@ -79,6 +94,8 @@ pub async fn link_discord_account(
         Json(LinkDiscordResponse {
             success: true,
             message: "Discord account linked successfully".to_string(),
+            discord_id: updated_user.discord_id,
+            discord_username: updated_user.discord_username,
         }),
     ))
 }
@@ -133,7 +150,7 @@ pub async fn unlink_discord_account(
         .map_err(|_| AppError::BadRequest("Invalid user ID".to_string()))?;
 
     sqlx::query!(
-        "UPDATE users SET discord_id = NULL WHERE id = $1",
+        "UPDATE users SET discord_id = NULL, discord_username = NULL WHERE id = $1",
         user_id
     )
     .execute(pool.as_ref())
@@ -145,6 +162,8 @@ pub async fn unlink_discord_account(
         Json(LinkDiscordResponse {
             success: true,
             message: "Discord account unlinked successfully".to_string(),
+            discord_id: None,
+            discord_username: None,
         }),
     ))
 }

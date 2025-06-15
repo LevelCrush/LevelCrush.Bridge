@@ -14,7 +14,7 @@ interface WebSocketContextType {
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {
-  const { tokens, isAuthenticated } = useAuth();
+  const { tokens, isAuthenticated, isLoading: authLoading } = useAuth();
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const reconnectAttempts = useRef(0);
@@ -29,10 +29,13 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Use ws:// for local development, wss:// for production
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/market`;
+      // Use environment variable for WebSocket URL
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const wsUrl = apiUrl 
+        ? apiUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/market'
+        : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/market`;
       
+      console.log('Attempting WebSocket connection to:', wsUrl);
       const newSocket = new WebSocket(wsUrl);
 
       newSocket.onopen = () => {
@@ -115,6 +118,11 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   }, [isAuthenticated, tokens?.access_token]);
 
   useEffect(() => {
+    // Don't try to connect while auth is still loading
+    if (authLoading) {
+      return;
+    }
+
     if (!isAuthenticated || !tokens?.access_token) {
       if (socket) {
         socket.close();
@@ -127,6 +135,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Only connect after auth is loaded and user is authenticated
     connect();
 
     return () => {
@@ -137,7 +146,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         clearTimeout(reconnectTimeout.current);
       }
     };
-  }, [isAuthenticated, tokens?.access_token, connect]);
+  }, [isAuthenticated, tokens?.access_token, authLoading, connect]);
 
   const subscribe = useCallback((channel: string) => {
     subscribedChannels.current.add(channel);

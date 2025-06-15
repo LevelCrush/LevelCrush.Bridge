@@ -43,8 +43,40 @@ npm run dev
 - **Styling**: Tailwind CSS with custom dark theme ✅
 - **State**: TanStack Query + Zustand ✅
 - **Auth**: JWT with persistent sessions ✅
-- **Real-time**: WebSockets (backend ready, frontend pending)
-- **Discord**: Bot planned for next phase
+- **Real-time**: WebSockets for market updates ✅
+- **Discord**: Bot with full trading integration ✅
+
+## Discord Bot Features
+
+### Account Linking
+- Players link their Discord account through the web app Settings page
+- OAuth2 flow ensures secure authentication
+- One Discord account can only be linked to one Dynasty Trader account
+- Unlinking is supported with confirmation to prevent accidents
+
+### Trading Commands
+- `/trade sell <item> <quantity> <price> [duration]` - List items on the market
+- `/trade buy <listing_id> [quantity]` - Purchase from market listings
+- `/trade cancel <listing_id>` - Cancel your active listings
+- `/trade listings [character]` - View your current market listings
+
+### Market Monitoring
+- Real-time alerts when market volumes change by 20% or more
+- Death announcements showing character name, dynasty, and market impact
+- Dynasty leaderboard updates every 5 minutes showing top 10 dynasties
+- Configurable channels per Discord server using `/setup` command
+
+### Information Commands
+- `/market status [region]` - Get current market prices and activity
+- `/character info [name]` - View character stats and location
+- `/dynasty info` - Display your dynasty information
+- `/help` - Comprehensive command guide
+
+### Server Administration
+- `/setup channel <type> <channel>` - Configure notification channels
+- `/setup view` - View current bot configuration
+- `/setup reset [type]` - Reset channel configurations
+- Bot uses PostgreSQL to persist server settings
 
 ## Core Game Concepts
 
@@ -120,13 +152,25 @@ npm run dev
 ### ✅ Phase 5: Discord Bot (Complete)
 - [x] Bot project structure with TypeScript
 - [x] OAuth2 integration endpoints in backend
+- [x] Discord account linking flow in frontend Settings
 - [x] Basic commands (ping, link, market, dynasty, character)
-- [x] Market watcher service for alerts
-- [x] Death announcements service
-- [x] Dynasty leaderboards
+- [x] Market watcher service for alerts (20%+ volume changes)
+- [x] Death announcements service with market impact
+- [x] Dynasty leaderboards (updates every 5 minutes)
 - [x] Trading commands (sell, buy, cancel, listings)
 - [x] Server-specific channel configuration with /setup command
 - [x] Help command with comprehensive guide
+- [x] Automatic command deployment option (dev mode or env flag)
+
+### Phase 6: Game Enhancement (Next)
+- [ ] Trade routes and caravan system
+- [ ] Character relationships and alliances
+- [ ] Regional reputation mechanics
+- [ ] Ghost market interactions
+- [ ] Achievement and perk system
+- [ ] Dynasty upgrades and bonuses
+- [ ] Market event details and participation
+- [ ] Advanced analytics dashboard
 
 ## Key Files & Directories
 
@@ -147,17 +191,18 @@ bridge/                          # Project root
 ├── frontend/
 │   └── dynasty-trader/        # React PWA ✅
 │       ├── src/
-│       │   ├── pages/         # Auth, Dashboard, Character, Market
+│       │   ├── pages/         # Auth, Dashboard, Character, Market, Settings
 │       │   ├── services/      # API client services
 │       │   ├── types/         # TypeScript interfaces
 │       │   └── stores/        # Zustand state management
 │       └── package.json       # Dependencies
 ├── discord-bot/              # Discord integration ✅
 │   ├── src/
-│   │   ├── commands/         # Slash commands
-│   │   ├── services/         # API client & watchers
+│   │   ├── commands/         # Slash commands (market, trade, setup, etc.)
+│   │   ├── services/         # Market watcher, death announcer
 │   │   ├── events/           # Discord event handlers
 │   │   └── index.ts          # Bot entry point
+│   ├── README.md             # Setup and usage guide
 │   └── package.json          # Node.js dependencies
 ├── migrations/
 │   ├── mariadb/              # Legacy Bridge migrations

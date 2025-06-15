@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { User, AuthTokens, LoginRequest, RegisterRequest } from '@/types';
 import { authService } from '@/services/auth';
 import { storage } from '@/lib/storage';
@@ -12,6 +12,7 @@ interface AuthContextType {
   register: (request: RegisterRequest) => Promise<void>;
   logout: () => void;
   refreshToken: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +21,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [tokens, setTokens] = useState<AuthTokens | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    setTokens(null);
+    storage.clearAuth();
+  }, []);
+
+  const refreshToken = useCallback(async () => {
+    if (!tokens?.refresh_token) {
+      throw new Error('No refresh token available');
+    }
+
+    try {
+      const response = await authService.refreshToken(tokens.refresh_token);
+      setTokens(response.tokens);
+      storage.setTokens(response.tokens);
+    } catch (error) {
+      logout();
+      throw error;
+    }
+  }, [tokens, logout]);
 
   useEffect(() => {
     // Check for stored auth data on mount
@@ -34,12 +56,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authService.verifyToken(storedTokens.access_token)
         .then((isValid) => {
           if (!isValid) {
-            // Try to refresh
-            return refreshToken();
+            // Try to refresh - but we can't use refreshToken here because it depends on state
+            // Instead, directly call the service
+            return authService.refreshToken(storedTokens.refresh_token)
+              .then((response) => {
+                setTokens(response.tokens);
+                storage.setTokens(response.tokens);
+              })
+              .catch(() => {
+                setUser(null);
+                setTokens(null);
+                storage.clearAuth();
+              });
           }
         })
         .catch(() => {
-          logout();
+          setUser(null);
+          setTokens(null);
+          storage.clearAuth();
         })
         .finally(() => {
           setIsLoading(false);
@@ -63,25 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     storage.setAuth(response.user, response.tokens);
   };
 
-  const logout = () => {
-    setUser(null);
-    setTokens(null);
-    storage.clearAuth();
-  };
-
-  const refreshToken = async () => {
-    if (!tokens?.refresh_token) {
-      throw new Error('No refresh token available');
-    }
-
-    try {
-      const response = await authService.refreshToken(tokens.refresh_token);
-      setTokens(response.tokens);
-      storage.setTokens(response.tokens);
-    } catch (error) {
-      logout();
-      throw error;
-    }
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    storage.setUser(updatedUser);
   };
 
   const value: AuthContextType = {
@@ -93,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register,
     logout,
     refreshToken,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

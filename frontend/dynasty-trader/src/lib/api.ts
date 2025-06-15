@@ -8,8 +8,10 @@ class ApiClient {
   private refreshSubscribers: ((token: string) => void)[] = [];
 
   constructor() {
+    const baseURL = import.meta.env.VITE_API_URL || '';
+    
     this.client = axios.create({
-      baseURL: '/api/v2',
+      baseURL: `${baseURL}/api/v2`,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',

@@ -27,6 +27,7 @@ export const authService = {
 
   async verifyToken(token: string): Promise<boolean> {
     try {
+      // The verify endpoint now returns user data, but we just care if it succeeds
       await api.get('/auth/verify', {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -5,6 +5,7 @@ import { ExtendedClient, Command } from './types/index.js';
 import { readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { deployCommands } from './deploy-commands.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -96,6 +97,18 @@ process.on('SIGTERM', () => {
 async function start() {
   try {
     logger.info('Starting Dynasty Trader Discord Bot...');
+    
+    // Deploy commands on startup in development mode
+    if (process.env.NODE_ENV === 'development' || process.env.DEPLOY_COMMANDS_ON_START === 'true') {
+      logger.info('Deploying slash commands...');
+      try {
+        await deployCommands();
+        logger.info('Slash commands deployed successfully');
+      } catch (error) {
+        logger.error('Failed to deploy commands:', error);
+        // Don't exit - commands might already be deployed
+      }
+    }
     
     await loadCommands();
     await loadEvents();
