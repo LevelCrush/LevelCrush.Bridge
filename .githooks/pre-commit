@@ -1,0 +1,49 @@
+#!/bin/bash
+# Pre-commit hook to check for potential credential leaks
+
+# Patterns that might indicate credentials
+PATTERNS=(
+    # Discord
+    "DISCORD_CLIENT_SECRET=\S+"
+    "DISCORD_TOKEN=\S+"
+    # Generic API keys and secrets
+    "API_KEY=\S+"
+    "API_SECRET=\S+"
+    "SECRET_KEY=\S+"
+    "CLIENT_SECRET=\S+"
+    "PRIVATE_KEY=\S+"
+    # Database credentials
+    "DB_PASSWORD=\S+"
+    "DATABASE_PASSWORD=\S+"
+    # JWT secrets
+    "JWT_SECRET=\S+"
+    # AWS
+    "AWS_SECRET_ACCESS_KEY=\S+"
+    "AWS_ACCESS_KEY_ID=\S+"
+)
+
+# Files to check (exclude example files)
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -v -E '\.example$|\.sample$|\.template$')
+
+if [ -z "$FILES" ]; then
+    exit 0
+fi
+
+# Check each file for patterns
+for FILE in $FILES; do
+    for PATTERN in "${PATTERNS[@]}"; do
+        if grep -E "$PATTERN" "$FILE" > /dev/null 2>&1; then
+            echo "⚠️  WARNING: Potential credential found in $FILE"
+            echo "   Pattern matched: $PATTERN"
+            echo ""
+            echo "   If this is intentional (e.g., in an example file), you can:"
+            echo "   1. Use placeholder values like 'your-secret-here'"
+            echo "   2. Add the file to .gitignore"
+            echo "   3. Use git commit --no-verify to bypass this check"
+            echo ""
+            exit 1
+        fi
+    done
+done
+
+exit 0
