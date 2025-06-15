@@ -16,7 +16,7 @@ This project is evolving from "Bridge" (a multi-game inventory system) into **Dy
 
 ```bash
 # Backend setup
-cp .env.dynasty .env
+cp .env.dynasty.example .env
 cargo run --bin migrate_postgres
 cargo run --bin dynasty-trader
 

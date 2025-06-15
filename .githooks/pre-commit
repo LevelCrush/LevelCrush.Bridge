@@ -22,7 +22,19 @@ PATTERNS=(
     "AWS_ACCESS_KEY_ID=\S+"
 )
 
-# Files to check (exclude example files)
+# Check for .env files (only .env.example and .env.*.example are allowed)
+ENV_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.env' | grep -v -E '\.env\.example$|\.env\.[^.]+\.example$')
+if [ ! -z "$ENV_FILES" ]; then
+    echo "❌ ERROR: Attempting to commit .env files that are not .example files:"
+    echo "$ENV_FILES"
+    echo ""
+    echo "Only .env.example and .env.*.example files should be committed."
+    echo "Please remove these files from your commit and add them to .gitignore."
+    echo ""
+    exit 1
+fi
+
+# Files to check for credentials (exclude example files)
 FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -v -E '\.example$|\.sample$|\.template$')
 
 if [ -z "$FILES" ]; then
